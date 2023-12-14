@@ -2,10 +2,11 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from pltsettings import PlotSettings
+import TestBench_data_processing as tb_dataprocessing
 print(os.getcwd())
 
-PlotSettings()
+tb_dataprocessing.PlotSettings()
+
 
 Port = '4port/'
 Wanted_data_x = ' X(C)'

@@ -12,9 +12,7 @@ number_interval = 21
 step = 0.5
 max_point = 5
 Port = '4port/'
-Wanted_data_x = ' X(C)'
-Wanted_data_y = ' Y(C)'
-
+Wanted_data = {'X': ' X(C)', 'Y': ' Y(C)'}
 
 filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
 file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
@@ -28,7 +26,7 @@ data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max
 
 # print(data.head())
 
-plt.scatter(data[Wanted_data_x], data[Wanted_data_y])
+plt.scatter(data[Wanted_data['X']], data[Wanted_data['Y']])
 # plt.yticks([0.4, 0.3, 0.2, 0.1, 0.0, -0.1])
 plt.title('measured raw data')
 plt.xlabel('X raw data')
@@ -39,7 +37,7 @@ plt.ylabel('Y raw data')
 # bbox_inches='tight')
 # plt.show()
 
-cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][[Wanted_data_x, Wanted_data_y]]
+cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][[Wanted_data['X'], Wanted_data['Y']]]
 x_offset = cal_offset[' X(C)'].values[0]*1e3
 y_offset = cal_offset[' Y(C)'].values[0]*1e3
 print(fr"x_offset: {x_offset} μm")

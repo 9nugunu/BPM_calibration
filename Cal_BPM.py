@@ -28,6 +28,7 @@ data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max
 
 # print(data.head())
 
+plt.figure(1)
 plt.scatter(data[Wanted_data_x], data[Wanted_data_y])
 # plt.yticks([0.4, 0.3, 0.2, 0.1, 0.0, -0.1])
 plt.title('measured raw data')
@@ -44,3 +45,8 @@ x_offset = cal_offset[' X(C)'].values[0]*1e3
 y_offset = cal_offset[' Y(C)'].values[0]*1e3
 print(fr"x_offset: {x_offset} μm")
 print(f"y_offset: {y_offset} μm")
+
+plt.figure(2)
+plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data_x])
+plt.scatter(data['x'], data[Wanted_data_x])
+plt.show()

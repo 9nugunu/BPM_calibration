@@ -26,7 +26,7 @@ data = pd.read_csv(filename, index_col=False)
 data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
 data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
 
-print(data.head())
+# print(data.head())
 
 plt.scatter(data[Wanted_data_x], data[Wanted_data_y])
 # plt.yticks([0.4, 0.3, 0.2, 0.1, 0.0, -0.1])
@@ -37,4 +37,10 @@ plt.ylabel('Y raw data')
 #     format='png',
 #     dpi=1000,
 # bbox_inches='tight')
-plt.show()
+# plt.show()
+
+cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][[Wanted_data_x, Wanted_data_y]]
+x_offset = cal_offset[' X(C)'].values[0]*1e3
+y_offset = cal_offset[' Y(C)'].values[0]*1e3
+print(fr"x_offset: {x_offset} μm")
+print(f"y_offset: {y_offset} μm")

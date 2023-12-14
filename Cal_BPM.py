@@ -12,8 +12,7 @@ number_interval = 21
 step = 0.5
 max_point = 5
 Port = '4port/'
-Wanted_data_x = ' X(C)'
-Wanted_data_y = ' Y(C)'
+Wanted_data = {'X':' X(C)', 'Y':' Y(C)'}
 
 
 filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
@@ -29,7 +28,7 @@ data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max
 # print(data.head())
 
 plt.figure(1)
-plt.scatter(data[Wanted_data_x], data[Wanted_data_y])
+plt.scatter(data[Wanted_data['X']], data[Wanted_data['Y']])
 # plt.yticks([0.4, 0.3, 0.2, 0.1, 0.0, -0.1])
 plt.title('measured raw data')
 plt.xlabel('X raw data')
@@ -40,7 +39,7 @@ plt.ylabel('Y raw data')
 # bbox_inches='tight')
 # plt.show()
 
-cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][[Wanted_data_x, Wanted_data_y]]
+cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][[Wanted_data['X'], Wanted_data['Y']]]
 x_offset = cal_offset[' X(C)'].values[0]*1e3
 y_offset = cal_offset[' Y(C)'].values[0]*1e3
 print(fr"x_offset: {x_offset} μm")
@@ -60,7 +59,8 @@ mean_same_y = data.groupby('y').mean()
 # plt.scatter(mean_same_y.index, mean_same_y[' Y(C)'], label='mean_same_y')
 # plt.legend()
 
-cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, max_point)
+fit_num = 1
+cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, max_point, fit_num)
 # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
 data['cal_X'], data['cal_Y']  = cal_x, cal_y
 
@@ -79,5 +79,44 @@ plt.ylabel("Linear Estimation [mm]")
 plt.gca().set_aspect('equal')
 # plt.ylabel("K$_{x, y}$ X DOS ($\Delta/\Sigma$)")
 plt.grid()
-plt.show()
 
+
+# %%
+for i in range(3):
+    fig, ax = plt.subplots(figsize=(5,5))
+    if i == 0:
+        fit_num = 1
+    elif i == 1:
+        fit_num = 3
+    else:
+        fit_num = 5
+    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, max_point, fit_num)
+    # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
+    data['cal_X'], data['cal_Y']  = cal_x, cal_y
+
+    # Scatter plots
+    ax.scatter(data['x'], data['y'], marker='o', fc='none', edgecolors='r', lw=1, s=50)
+    ax.scatter(cal_x, cal_y, marker='4', c='blue', s=50)
+
+    ax.set_xlabel('X [mm]', fontsize=14)
+    ax.set_ylabel('Y [mm]', fontsize=14)
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+    ax.set_aspect('equal', adjustable='box')
+
+    # Adjusting the legend
+    legend = ax.legend(['Wire', 'Measured'], loc='upper left', bbox_to_anchor=(0.64,1.20))
+    legend.get_frame().set_edgecolor('black')
+
+
+x_values = np.arange(max_point, -max_point-step, -step) #data['x'].to_numpy()
+y_values = x_values #data['y'].to_numpy()
+# len(x_values)
+cal_XX, cal_YY = cal_x.reshape(len(x_values), len(x_values)), cal_y.reshape(len(x_values), len(x_values))
+# Convert Series to Numpy arrays
+
+x, y = np.meshgrid(x_values, y_values)    
+error_xx, error_yy = x - cal_XX, y - cal_YY
+# z = abs(error_xx) + abs(error_yy)
+z = np.sqrt( error_xx **2 + error_yy ** 2)
+
+plt.show()

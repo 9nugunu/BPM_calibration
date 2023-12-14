@@ -7,17 +7,24 @@ print(os.getcwd())
 
 tb_dataprocessing.PlotSettings()
 
+number_interval = 21
 
+step = 0.5
+max_point = 5
 Port = '4port/'
 Wanted_data_x = ' X(C)'
 Wanted_data_y = ' Y(C)'
 
-FileName = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
-file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' + FileName # 'PAPER_ONLY_0825/' +
-data = pd.read_csv(file_dir, index_col=False)
+
+filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
+file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
+os.chdir('../' + file_dir)
+print(os.getcwd())
+
+data = pd.read_csv(filename, index_col=False)
 
 data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
-# number_interval, data['x'], data['y'] = add_col_axis(data, step, measure_range)
+data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
 
 print(data.head())
 

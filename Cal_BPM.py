@@ -108,15 +108,83 @@ for i in range(3):
     legend.get_frame().set_edgecolor('black')
 
 
-x_values = np.arange(max_point, -max_point-step, -step) #data['x'].to_numpy()
-y_values = x_values #data['y'].to_numpy()
-# len(x_values)
-cal_XX, cal_YY = cal_x.reshape(len(x_values), len(x_values)), cal_y.reshape(len(x_values), len(x_values))
-# Convert Series to Numpy arrays
+    x_values = np.arange(max_point, -max_point-step, -step) #data['x'].to_numpy()
+    y_values = x_values #data['y'].to_numpy()
+    # len(x_values)
+    cal_XX, cal_YY = cal_x.reshape(len(x_values), len(x_values)), cal_y.reshape(len(x_values), len(x_values))
+    # Convert Series to Numpy arrays
 
-x, y = np.meshgrid(x_values, y_values)    
-error_xx, error_yy = x - cal_XX, y - cal_YY
-# z = abs(error_xx) + abs(error_yy)
-z = np.sqrt( error_xx **2 + error_yy ** 2)
+    x, y = np.meshgrid(x_values, y_values)    
+    error_xx, error_yy = x - cal_XX, y - cal_YY
+    # z = abs(error_xx) + abs(error_yy)
+    z = np.sqrt( error_xx **2 + error_yy ** 2)
 
+    plt.close()
+    import matplotlib.ticker as ticker
+    import matplotlib as mpl
+    vmin = 0
+    vmax = 0.65 #round(np.max(z),2) # 0.5 #round(np.max(z),2) + 0.005#0.8 #round(np.max(z),2) +0.005
+    # Create the plot
+    fig = plt.figure(10+i)
+    ax = fig.add_subplot(111, projection='3d')
+    if fit_num == 3:
+        fig.suptitle("3rd polynomial fitting", fontsize=16, fontweight='bold', x=0.57)
+    elif fit_num == 1:
+        fig.suptitle("Linear fitting", fontsize=16, fontweight='bold', x=0.57)
+    elif fit_num == 5:
+        fig.suptitle("5th polynomial fitting", fontsize=18, fontweight='bold', x=0.5)
+    # ax.contour(x, y, z, level=20, colors="k", linewidths=1) , vmin=vmin, vmax=vmax
+    surf = ax.plot_surface(x, y, z, cmap='jet', rstride=1, cstride=1, antialiased=True, vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
+    ax.set_xlabel('X [mm]', labelpad=3)
+
+    # ax.xaxis.majorTicks[0].set_pad(15)
+    ax.set_ylabel('Y [mm]', labelpad=3)
+    ax.set_zticks([0.2, 0.4, 0.6])
+
+    ax.view_init(elev=50)
+    ax.yaxis.set_ticks_position('top')
+    plt.close()
+
+
+    fig1 = plt.figure(20+i)
+    ax2 = fig1.add_subplot(111)
+        
+    if fit_num == 3:
+        fig1.suptitle("3rd polynomial fitting", fontsize=18, fontweight='bold', x=0.4)
+    elif fit_num == 1:
+        fig1.suptitle("Linear fitting", fontsize=18, fontweight='bold', x=0.5)
+    elif fit_num == 5:
+        fig1.suptitle("5th polynomial fitting", fontsize=18, fontweight='bold', x=0.4)
+    cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
+    cax, _ = mpl.colorbar.make_axes(ax2)
+    cbar = mpl.colorbar.ColorbarBase(cax, cmap=cs.cmap, norm=cs.norm)
+    cbar.set_ticks([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, vmax])
+    cs2 = ax2.contour(cs, levels=cs.levels[::30], colors='black')
+    cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+    cbar.set_label('Error [mm]', rotation=270, labelpad=20)
+    # cbar.add_lines(cs2)
+    ax2.clabel(cs2, fmt='%2.1f', colors='magenta', fontsize=16)
+    ax2.set_xlabel('X [mm]')
+    ax2.set_ylabel('Y [mm]')
+
+# %%
+start_ = 1
+file_ = 16
+error_dict = {}
+range_values = np.arange(step, max_point+step, step)
+errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
+
+for j in range(start_, file_+1):
+    
+    filename = 'cal_paper__' + str(j) +'_4port_01_' + '0.25'  + '.csv'
+    # file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
+    # os.chdir(file_dir)
+    # print(os.getcwd())
+
+    data = pd.read_csv(filename, index_col=False)
+    data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
+    data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
+    params = data[['x', 'y']]
+
+    tb_dataprocessing.ErrorWrtRange(data, Wanted_data, max_point, step)
 plt.show()

@@ -46,7 +46,11 @@ y_offset = cal_offset[' Y(C)'].values[0]*1e3
 print(fr"x_offset: {x_offset} μm")
 print(f"y_offset: {y_offset} μm")
 
+mean_same_x = data.groupby('x').mean()
+
+print(mean_same_x)
 plt.figure(2)
-plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data_x])
-plt.scatter(data['x'], data[Wanted_data_x])
+plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data_x], label='on_axis')
+plt.scatter(mean_same_x.index, mean_same_x[' X(C)'], label='mean_same_x')
+plt.legend()
 plt.show()

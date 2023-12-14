@@ -2,7 +2,10 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pltsettings import PlotSettings
 print(os.getcwd())
+
+PlotSettings()
 
 Port = '4port/'
 Wanted_data_x = ' X(C)'

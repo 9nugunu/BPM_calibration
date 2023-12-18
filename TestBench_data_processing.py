@@ -60,9 +60,9 @@ def optimized_func(data_, Wanted_data, max_point, fit_num):
     poptx = BPM_curve_fit(xdata_fit.values, xdata_fit.index, fit_num)
     popty = BPM_curve_fit(ydata_fit.values, ydata_fit.index, fit_num)
     
-    print("*"*100)
-    print(len(poptx), popty)
-    print("*"*100)
+    # print("*"*100)
+    # print(len(poptx), popty)
+    # print("*"*100)
 
     if fit_num == 1:
         cal_x_ = fit_1st(np.array(data_[Wanted_data['X']]), *poptx)
@@ -75,7 +75,7 @@ def optimized_func(data_, Wanted_data, max_point, fit_num):
         cal_y_ = fit_5th(np.array(data_[Wanted_data['Y']]), *popty)
 
 
-    print(cal_x_, cal_y_)
+    # print(cal_x_, cal_y_)
     return cal_x_, cal_y_
 
 def ErrorWrtRange(data_, Wanted_data_, max_point_, step_):

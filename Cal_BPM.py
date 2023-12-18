@@ -7,22 +7,24 @@ print(os.getcwd())
 
 tb_dataprocessing.PlotSettings()
 
-number_interval = 21
+number_interval = 33
 
 step = 0.5
-max_point = 5
-Port = '4port/'
-Wanted_data = {'X':' X(C)', 'Y':' Y(C)'}
+max_point = 8
+Port = '2port/'
+Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
 
-filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
-file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
+# filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
+filename = 'BPM01_352MHz_14dBm_2port_01_1st_050_12181617.csv'
+file_dir = './-5_5_dataset/' + Port #+ 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
 os.chdir('../' + file_dir)
 print(os.getcwd())
 
 data = pd.read_csv(filename, index_col=False)
 
-data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
+# data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
+data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
 data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
 
 # print(data.head())
@@ -40,8 +42,8 @@ plt.ylabel('Y raw data')
 # plt.show()
 
 cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][[Wanted_data['X'], Wanted_data['Y']]]
-x_offset = cal_offset[' X(C)'].values[0]*1e3
-y_offset = cal_offset[' Y(C)'].values[0]*1e3
+x_offset = cal_offset[' X(A)'].values[0]*1e3
+y_offset = cal_offset[' Y(A)'].values[0]*1e3
 print(fr"x_offset: {x_offset} μm")
 print(f"y_offset: {y_offset} μm")
 
@@ -64,7 +66,8 @@ cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, max_point, fi
 # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
 data['cal_X'], data['cal_Y']  = cal_x, cal_y
 
-x_dummy = np.arange(-5, 5.1, 0.5)
+print(data.head())
+x_dummy = np.arange(-max_point, max_point+step, step)
 y_dummy = x_dummy
 mean_same_x = data.groupby('x').mean()['cal_X']
 mean_same_y = data.groupby('y').mean()['cal_Y']
@@ -174,17 +177,17 @@ error_dict = {}
 range_values = np.arange(step, max_point+step, step)
 errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
 
-for j in range(start_, file_+1):
+# for j in range(start_, file_+1):
     
-    filename = 'cal_paper__' + str(j) +'_4port_01_' + '0.25'  + '.csv'
-    # file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
-    # os.chdir(file_dir)
-    # print(os.getcwd())
+#     filename = 'cal_paper__' + str(j) +'_4port_01_' + '0.25'  + '.csv'
+#     # file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
+#     # os.chdir(file_dir)
+#     # print(os.getcwd())
 
-    data = pd.read_csv(filename, index_col=False)
-    data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
-    data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
-    params = data[['x', 'y']]
+#     data = pd.read_csv(filename, index_col=False)
+#     data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
+#     data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
+#     params = data[['x', 'y']]
 
-    tb_dataprocessing.ErrorWrtRange(data, Wanted_data, max_point, step)
+#     tb_dataprocessing.ErrorWrtRange(data, Wanted_data, max_point, step)
 plt.show()

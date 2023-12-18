@@ -11,6 +11,7 @@ number_interval = 33
 
 step = 0.5
 max_point = 8
+cal_range = 5
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
@@ -62,7 +63,7 @@ mean_same_y = data.groupby('y').mean()
 # plt.legend()
 
 fit_num = 1
-cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, max_point, fit_num)
+cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit_num)
 # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
 data['cal_X'], data['cal_Y']  = cal_x, cal_y
 
@@ -93,7 +94,7 @@ for i in range(3):
         fit_num = 3
     else:
         fit_num = 5
-    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, max_point, fit_num)
+    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit_num)
     # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
     data['cal_X'], data['cal_Y']  = cal_x, cal_y
 
@@ -172,22 +173,21 @@ for i in range(3):
 
 # %%
 start_ = 1
-file_ = 16
+file_ = 1
 error_dict = {}
 range_values = np.arange(step, max_point+step, step)
 errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
 
-# for j in range(start_, file_+1):
+for j in range(start_, file_+1):
     
-#     filename = 'cal_paper__' + str(j) +'_4port_01_' + '0.25'  + '.csv'
-#     # file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
-#     # os.chdir(file_dir)
-#     # print(os.getcwd())
+    # filename = 'cal_paper__' + str(j) +'_4port_01_' + '0.25'  + '.csv'
+    filename = 'BPM01_352MHz_14dBm_2port_01_1st_050_12181617.csv'
+    # file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
+    # os.chdir(file_dir)
+    # print(os.getcwd())
 
-#     data = pd.read_csv(filename, index_col=False)
-#     data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
-#     data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
-#     params = data[['x', 'y']]
-
-#     tb_dataprocessing.ErrorWrtRange(data, Wanted_data, max_point, step)
+    data = pd.read_csv(filename, index_col=False)
+    # data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
+    data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
+    tb_dataprocessing.ErrorWrtRange(data, Wanted_data, max_point, cal_range, step)
 plt.show()

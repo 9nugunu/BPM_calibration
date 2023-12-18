@@ -50,12 +50,15 @@ def fit_3rd(x, a, b, c, d):
 def fit_5th(x, a, b, c, d, e, f):
     return a*x**5 + b*x**4 + c*x**3 + d*x**2 + e*x + f
 
-def optimized_func(data_, Wanted_data, max_point, fit_num):
-    mean_x = data_.groupby('x').mean()
-    mean_y = data_.groupby('y').mean()
+def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
+    print(raw_data_.head())
+    print(raw_data_.groupby('x').mean())
 
-    xdata_fit = mean_x[abs(mean_x.index) <= max_point][Wanted_data['X']]
-    ydata_fit = mean_y[abs(mean_y.index) <= max_point][Wanted_data['Y']]
+    mean_x = raw_data_.groupby('x').mean()
+    mean_y = raw_data_.groupby('y').mean()
+
+    xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data['X']]
+    ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data['Y']]
 
     poptx = BPM_curve_fit(xdata_fit.values, xdata_fit.index, fit_num)
     popty = BPM_curve_fit(ydata_fit.values, ydata_fit.index, fit_num)
@@ -65,29 +68,32 @@ def optimized_func(data_, Wanted_data, max_point, fit_num):
     # print("*"*100)
 
     if fit_num == 1:
-        cal_x_ = fit_1st(np.array(data_[Wanted_data['X']]), *poptx)
-        cal_y_ = fit_1st(np.array(data_[Wanted_data['Y']]), *popty)
+        cal_x_ = fit_1st(np.array(raw_data_[Wanted_data['X']]), *poptx)
+        cal_y_ = fit_1st(np.array(raw_data_[Wanted_data['Y']]), *popty)
     elif fit_num == 3:
-        cal_x_ = fit_3rd(np.array(data_[Wanted_data['X']]), *poptx)
-        cal_y_ = fit_3rd(np.array(data_[Wanted_data['Y']]), *popty)
+        cal_x_ = fit_3rd(np.array(raw_data_[Wanted_data['X']]), *poptx)
+        cal_y_ = fit_3rd(np.array(raw_data_[Wanted_data['Y']]), *popty)
     elif fit_num == 5:
-        cal_x_ = fit_5th(np.array(data_[Wanted_data['X']]), *poptx)
-        cal_y_ = fit_5th(np.array(data_[Wanted_data['Y']]), *popty)
+        cal_x_ = fit_5th(np.array(raw_data_[Wanted_data['X']]), *poptx)
+        cal_y_ = fit_5th(np.array(raw_data_[Wanted_data['Y']]), *popty)
 
+    # cal_x_, cal_y_ = 0, 0
 
     # print(cal_x_, cal_y_)
     return cal_x_, cal_y_
 
-def ErrorWrtRange(data_, Wanted_data_, max_point_, step_):
+def ErrorWrtRange(data_, Wanted_data_, max_point_, cal_range_, step_):
+    data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(B)', ' Y(B)'], axis=1, inplace=True)
+
     error_dict = {}
     range_values = np.arange(step_, max_point_+step_, step_)
     errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
-
     for fit in [1, 3, 5]:
         fit_num = fit
-        cal_x, cal_y = optimized_func(data_, Wanted_data_, max_point_, fit_num)
-        data_['cal_X'], data_['cal_Y'] = cal_x, cal_y
-        # data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
+        print("="*300)
+        cal_x_, cal_y_ = optimized_func(data_, Wanted_data_, cal_range_, fit_num)
+        print("*"*300)
+        data_['cal_X'], data_['cal_Y'] = cal_x_, cal_y_
         error_list = []
         for value in range_values:
             mask = (np.abs(data_['x']) <= value) & (np.abs(data_['y']) <= value)

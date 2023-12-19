@@ -11,13 +11,13 @@ number_interval = 33
 
 step = 0.5
 max_point = 8
-cal_range = 5
+cal_range = 8
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
-filename = 'BPM01_352MHz_14dBm_2port_01_1st_050_12181617.csv'
+filename = 'BPM01_352MHz_14dBm_2port_01_1th_5020231218_205303.csv'
 file_dir = './-5_5_dataset/' + Port #+ 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
 os.chdir('../' + file_dir)
 print(os.getcwd())
@@ -43,8 +43,8 @@ plt.ylabel('Y raw data')
 # plt.show()
 
 cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][[Wanted_data['X'], Wanted_data['Y']]]
-x_offset = cal_offset[' X(A)'].values[0]*1e3
-y_offset = cal_offset[' Y(A)'].values[0]*1e3
+x_offset = round(cal_offset[' X(A)'].values[0]*1e3,3)
+y_offset = round(cal_offset[' Y(A)'].values[0]*1e3,3)
 print(fr"x_offset: {x_offset} μm")
 print(f"y_offset: {y_offset} μm")
 
@@ -62,32 +62,41 @@ mean_same_y = data.groupby('y').mean()
 # plt.scatter(mean_same_y.index, mean_same_y[' Y(C)'], label='mean_same_y')
 # plt.legend()
 
-fit_num = 1
-cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit_num)
-# cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
-data['cal_X'], data['cal_Y']  = cal_x, cal_y
 
 print(data.head())
 x_dummy = np.arange(-max_point, max_point+step, step)
 y_dummy = x_dummy
-mean_same_x = data.groupby('x').mean()['cal_X']
-mean_same_y = data.groupby('y').mean()['cal_Y']
 print(mean_same_x)
-plt.figure(4)
-plt.plot(x_dummy, y_dummy, c='k',  lw=1, ls='-')
-plt.scatter(mean_same_x.index, mean_same_x.values, lw=0.8, marker='^', facecolor='none', edgecolor='b')
-plt.scatter(mean_same_y.index, mean_same_y.values, marker=',', facecolor='none', edgecolors='r')
-plt.title("Linear calibration result")
-plt.xlabel("Wire position [mm]")
-plt.ylabel("Linear Estimation [mm]")
-plt.gca().set_aspect('equal')
+
+for i in range(3):
+    if i == 0:
+        fit_num = 1
+    elif i == 1:
+        fit_num = 3
+    else:
+        fit_num = 5
+    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit_num)
+    # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
+    data['cal_X'], data['cal_Y']  = cal_x, cal_y
+
+    mean_same_x = data.groupby('x').mean()['cal_X']
+    mean_same_y = data.groupby('y').mean()['cal_Y']
+    plt.figure(4+i)
+    plt.plot(x_dummy, y_dummy, c='k',  lw=1, ls='-')
+    plt.scatter(mean_same_x.index, mean_same_x.values, lw=0.8, marker='^', facecolor='none', edgecolor='b')
+    plt.scatter(mean_same_y.index, mean_same_y.values, marker=',', facecolor='none', edgecolors='r')
+    # plt.title("Linear calibration result")
+    plt.xlabel("Wire position [mm]")
+    plt.ylabel("Linear Estimation [mm]")
+    plt.gca().set_aspect('equal')
 # plt.ylabel("K$_{x, y}$ X DOS ($\Delta/\Sigma$)")
-plt.grid()
+    plt.grid()
 
 
 # %%
 for i in range(3):
-    fig, ax = plt.subplots(figsize=(5,5))
+    fig = plt.figure(10+i)
+    ax = fig.add_subplot(111)
     if i == 0:
         fit_num = 1
     elif i == 1:
@@ -123,7 +132,6 @@ for i in range(3):
     # z = abs(error_xx) + abs(error_yy)
     z = np.sqrt( error_xx **2 + error_yy ** 2)
 
-    plt.close()
     import matplotlib.ticker as ticker
     import matplotlib as mpl
     vmin = 0
@@ -143,6 +151,7 @@ for i in range(3):
 
     # ax.xaxis.majorTicks[0].set_pad(15)
     ax.set_ylabel('Y [mm]', labelpad=3)
+    
     ax.set_zticks([0.2, 0.4, 0.6])
 
     ax.view_init(elev=50)
@@ -170,6 +179,8 @@ for i in range(3):
     ax2.clabel(cs2, fmt='%2.1f', colors='magenta', fontsize=16)
     ax2.set_xlabel('X [mm]')
     ax2.set_ylabel('Y [mm]')
+    ax2.set_xlim([-cal_range, cal_range])
+    ax2.set_ylim([-cal_range, cal_range])
 
 # %%
 start_ = 1
@@ -181,7 +192,7 @@ errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
 for j in range(start_, file_+1):
     
     # filename = 'cal_paper__' + str(j) +'_4port_01_' + '0.25'  + '.csv'
-    filename = 'BPM01_352MHz_14dBm_2port_01_1st_050_12181617.csv'
+    # filename = 'BPM01_352MHz_14dBm_2port_01_1st_050_12181617.csv'
     # file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
     # os.chdir(file_dir)
     # print(os.getcwd())

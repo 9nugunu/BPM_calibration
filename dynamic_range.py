@@ -3,7 +3,7 @@ import os
 import glob, re
 import matplotlib.pyplot as plt
 import numpy as np
-
+import TestBench_data_processing as tb_dataprocessing
 print(os.getcwd())
 
 file_dir = './231215_dynamic_range/'
@@ -46,11 +46,30 @@ for raw_file, amp_file in zip(raw_adc_files_sorted, amp_adc_files_sorted):
         raw_adc_data[adc_key] = raw_adc_df
         amp_adc_data[adc_key] = amp_adc_df
 
-print(raw_adc_data)
-print("="*300)
-print(amp_adc_data)
+# print(raw_adc_data)
+# print("="*300)
+# print(amp_adc_data)
 
-input_strength = np.arange(-60, 11, 5)
+tb_dataprocessing.PlotSettings()
+input_strength = np.arange(-50, 21, 5)
+plt.figure(1)
 for i in range(1, 5):
-    plt.semilogy(input_strength, raw_adc_data[f'adc{i}'][f' {i}Ch'])
+    if i == 1:  # 첫 번째 시리즈에만 레이블을 지정합니다.
+        plt.semilogy(input_strength, raw_adc_data[f'adc{i}'][f' {i}Ch'], 'b', label='w/o amp')
+    else:
+        plt.semilogy(input_strength, raw_adc_data[f'adc{i}'][f' {i}Ch'], 'b')
+
+# amp_adc_data에 대한 데이터 시리즈를 그리고, 첫 번째 시리즈에만 레이블을 추가합니다.
+for i in range(1, 5):
+    if i == 1:  # 첫 번째 시리즈에만 레이블을 지정합니다.
+        plt.semilogy(input_strength[:-5], amp_adc_data[f'adc{i}'][f' {i}Ch'], 'r', label='w/ 30dB amp')
+    else:
+        plt.semilogy(input_strength[:-5], amp_adc_data[f'adc{i}'][f' {i}Ch'], 'r')
+plt.title("Connecting directly S/G to electronics")
+plt.legend(loc='upper left')
+plt.xlabel("Input amplitude [dBm]")
+plt.ylabel("ADC count [A.U.]")
+
+os.chdir("../")
+
 plt.show()

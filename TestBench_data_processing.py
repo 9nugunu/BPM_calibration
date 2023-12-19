@@ -53,14 +53,29 @@ def fit_5th(x, a, b, c, d, e, f):
     return a*x**5 + b*x**4 + c*x**3 + d*x**2 + e*x + f
 
 def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
+    ver = 0
     # print(raw_data_.head())
     # print(raw_data_.groupby('x').mean())
 
-    mean_x = raw_data_.groupby('x').mean()
-    mean_y = raw_data_.groupby('y').mean()
+    if ver == 0:
+        mean_x = raw_data_.groupby('x').mean()
+        mean_y = raw_data_.groupby('y').mean()
 
-    xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data['X']]
-    ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data['Y']]
+        xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data['X']]
+        ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data['Y']]
+
+    elif ver == 1:
+        filtered_data = raw_data_[raw_data_['x'] == raw_data_['y']]
+        xdata_fit = filtered_data[abs(filtered_data['x']) <= cal_range_][Wanted_data['X']]
+        ydata_fit = filtered_data[abs(filtered_data['y']) <= cal_range_][Wanted_data['Y']]
+        xdata_fit.index = filtered_data[abs(filtered_data['x']) <= cal_range_]['x']
+        ydata_fit.index = filtered_data[abs(filtered_data['y']) <= cal_range_]['y']
+
+    #raw_data_.groupby('x').mean()
+    #raw_data_.groupby('y').mean()
+
+    # xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data['X']]
+    # ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data['Y']]
 
     poptx = BPM_curve_fit(xdata_fit.values, xdata_fit.index, fit_num)
     popty = BPM_curve_fit(ydata_fit.values, ydata_fit.index, fit_num)

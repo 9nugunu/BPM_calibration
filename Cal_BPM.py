@@ -17,7 +17,7 @@ Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
-filename = 'BPM01_65MHz_20dBm_2port_01_-10to10_100_20231219_011358.csv'
+filename = 'BPM01_352MHz_14dBm_2port_01_-10to10_100_20231219_150415.csv'
 file_dir = './-5_5_dataset/' + Port #+ 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
 os.chdir('../' + file_dir)
 print(os.getcwd())
@@ -52,14 +52,25 @@ mean_same_x = data.groupby('x').mean()
 mean_same_y = data.groupby('y').mean()
 
 print(mean_same_x)
-plt.figure(2)
+plt.figure(3)
+plt.subplot(221)
 plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label='on_axis')
 plt.scatter(mean_same_x.index, mean_same_x[Wanted_data['X']], label='mean_same_x')
 plt.legend()
 
-plt.figure(3)
+plt.subplot(222)
 plt.scatter(data[data['x'] == data['y']]['y'], data[data['x'] == data['y']][Wanted_data['Y']], label='on_axis')
 plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
+plt.legend()
+
+plt.subplot(223)
+plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis')
+# plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
+plt.legend()
+
+plt.subplot(224)
+plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis')
+# plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
 plt.legend()
 
 
@@ -87,7 +98,7 @@ for i in range(3):
     mean_same_x = data.groupby('x').mean()['cal_X']
     mean_same_y = data.groupby('y').mean()['cal_Y']
     
-    plt.plot(x_dummy, y_dummy, c='k',  lw=1, ls='-')
+    plt.scatter(x_dummy, y_dummy, c='k',  lw=0.5, ls='-')
     plt.scatter(mean_same_x.index, mean_same_x.values, lw=0.8, marker='^', facecolor='none', edgecolor='b')
     plt.scatter(mean_same_y.index, mean_same_y.values, marker=',', facecolor='none', edgecolors='r')
     # plt.title("Linear calibration result")
@@ -197,22 +208,22 @@ for i in range(3):
     ax2.set_ylim([-cal_range, cal_range])
 
 # %%
-# start_ = 1
-# file_ = 1
-# error_dict = {}
-# range_values = np.arange(step, max_point+step, step)
-# errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
+start_ = 1
+file_ = 1
+error_dict = {}
+range_values = np.arange(step, max_point+step, step)
+errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
 
-# for j in range(start_, file_+1):
+for j in range(start_, file_+1):
     
-#     # filename = 'cal_paper__' + str(j) +'_4port_01_' + '0.25'  + '.csv'
-#     # filename = 'BPM01_352MHz_14dBm_2port_01_1st_050_12181617.csv'
-#     # file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
-#     # os.chdir(file_dir)
-#     # print(os.getcwd())
+    # filename = 'cal_paper__' + str(j) +'_4port_01_' + '0.25'  + '.csv'
+    # filename = 'BPM01_352MHz_14dBm_2port_01_1st_050_12181617.csv'
+    # file_dir = './-5_5_dataset/' + Port + 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
+    # os.chdir(file_dir)
+    # print(os.getcwd())
 
-#     data = pd.read_csv(filename, index_col=False)
-#     # data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
-#     data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
-#     tb_dataprocessing.ErrorWrtRange(data, Wanted_data, max_point, cal_range, step)
+    data = pd.read_csv(filename, index_col=False)
+    # data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
+    data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
+    tb_dataprocessing.ErrorWrtRange(data, Wanted_data, max_point, cal_range, step)
 plt.show()

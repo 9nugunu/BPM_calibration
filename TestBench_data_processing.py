@@ -48,9 +48,9 @@ def fit_3rd(x, a, b, c, d):
     return a*x**3 + b*x**2 + c*x + d
     # return a*x**3 + c*x + d
 
-def fit_5th(x, a, b, c, d, e, f, g, h, i, j):
-    return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
-    # return a*x**5 + b*x**4 + c*x**3 + d*x**2 + e*x + f
+def fit_5th(x, a, b, c, d, e, f):
+    # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
+    return a*x**5 + b*x**4 + c*x**3 + d*x**2 + e*x + f
 
 def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
     # print(raw_data_.head())

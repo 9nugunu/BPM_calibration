@@ -17,7 +17,7 @@ Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
-filename = 'BPM01_352MHz_14dBm_2port_01_-10to10_100_20231219_150415.csv'
+filename = 'BPM01_352MHz_14dBm_2port_01_-10to10_100_20231219_155542.csv'
 file_dir = './-5_5_dataset/' + Port #+ 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
 os.chdir('../' + file_dir)
 print(os.getcwd())
@@ -80,17 +80,20 @@ y_dummy = x_dummy
 print(mean_same_x)
 
 plt.figure(figsize=(10, 6))
-for i in range(3):
-    plt.subplot(1, 3, i+1)
+for i in range(4):
+    plt.subplot(1, 4, i+1)
     if i == 0:
         fit_num = 1
         plt.title("Linear estimation")
     elif i == 1:
         fit_num = 3
         plt.title("3rd-order polynomial")
-    else:
+    elif i == 2:
         fit_num = 5
         plt.title("5th-order polynomial")
+    elif i == 3:
+        fit_num = 5 #'2D-3rd'
+        plt.title("2D polynomial")
     cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit_num)
     # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
     data['cal_X'], data['cal_Y']  = cal_x, cal_y
@@ -113,7 +116,7 @@ for i in range(3):
 # %%
 fig1 = plt.figure(figsize=(12, 6))
 # fig1.set_tight_layout(True)
-for i in range(3):
+for i in range(4):
 
     '''
     3D dimension plotting
@@ -124,8 +127,10 @@ for i in range(3):
         fit_num = 1
     elif i == 1:
         fit_num = 3
-    else:
+    elif i == 2:
         fit_num = 5
+    elif i == 3:
+        fit_num = 5 #'2D-3rd'
     cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit_num)
     # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
     data['cal_X'], data['cal_Y']  = cal_x, cal_y
@@ -185,7 +190,7 @@ for i in range(3):
     '''
     2D plance plotting
     '''
-    ax2 = fig1.add_subplot(1,3,i+1)
+    ax2 = fig1.add_subplot(2,2,i+1)
     # fig1.subplots_adjust(wspace=4, hspace=4)
     if fit_num == 3:
         ax2.set_title("3rd polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
@@ -193,6 +198,9 @@ for i in range(3):
         ax2.set_title("Linear fitting", fontsize=14, fontweight='bold', x=0.5)
     elif fit_num == 5:
         ax2.set_title("5th polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
+    elif fit_num == '2D-3rd':
+        ax2.set_title("2D multi-poly fitting", fontsize=14, fontweight='bold', x=0.4)
+
     cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
     cax, _ = mpl.colorbar.make_axes(ax2)
     cbar = mpl.colorbar.ColorbarBase(cax, cmap=cs.cmap, norm=cs.norm)

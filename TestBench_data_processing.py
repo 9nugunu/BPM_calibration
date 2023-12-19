@@ -27,14 +27,16 @@ def add_col_axis(number_interval, step, max_point):
 
     return repeated_x, y
 
-def BPM_curve_fit(x, y, fit_num):
+def BPM_curve_fit(x, target, fit_num):
     # print(FormOfpoly)
     if fit_num == 1:
-        popt, pcov = curve_fit(fit_1st, x, y)
+        popt, pcov = curve_fit(fit_1st, x, target)
     elif fit_num == 3:
-        popt, pcov = curve_fit(fit_3rd, x, y)
+        popt, pcov = curve_fit(fit_3rd, x, target)
     elif fit_num == 5:
-        popt, pcov = curve_fit(fit_5th, x, y)
+        popt, pcov = curve_fit(fit_5th, x, target)
+    elif fit_num == '2D-3rd':
+        popt, pcov = curve_fit(fit_2D, x, target)        
     return popt
 
 def fit_1st(x, a, b): # , c, d, e, f, e, f, g, h, i, j
@@ -52,8 +54,15 @@ def fit_5th(x, a, b, c, d, e, f):
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
     return a*x**5 + b*x**4 + c*x**3 + d*x**2 + e*x + f
 
+def fit_2D(xy, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p):
+    x, y = xy
+    # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
+    return a*x**3*y**3+b*x**2*y**3+c*x*y**3+d*y**3+e*x**3*y**2+f*x**2*y**2+g*x*y**1+h*y**1+i*x**3*y**1+j*x**2*y**1+k*x*y**1+l*y**1+m*x**3+n*x**2+o*x+p
+
+
+
 def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
-    ver = 2
+    ver = 1
     # print(raw_data_.head())
     # print(raw_data_.groupby('x').mean())
 
@@ -83,12 +92,12 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
     # xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data['X']]
     # ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data['Y']]
 
-    poptx = BPM_curve_fit(xdata_fit.values, xdata_fit.index, fit_num)
-    popty = BPM_curve_fit(ydata_fit.values, ydata_fit.index, fit_num)
-    
-    # print("*"*100)
-    # print(len(poptx), popty)
-    # print("*"*100)
+    if fit_num != "2D-3rd":
+        poptx = BPM_curve_fit(xdata_fit.values, xdata_fit.index, fit_num)
+        popty = BPM_curve_fit(ydata_fit.values, ydata_fit.index, fit_num)
+    else:
+        poptx = BPM_curve_fit((xdata_fit.values, ydata_fit.values), xdata_fit.index, fit_num)
+        popty = BPM_curve_fit((xdata_fit.values, ydata_fit.values), ydata_fit.index, fit_num)
 
     if fit_num == 1:
         cal_x_ = fit_1st(np.array(raw_data_[Wanted_data['X']]), *poptx)
@@ -99,18 +108,23 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
     elif fit_num == 5:
         cal_x_ = fit_5th(np.array(raw_data_[Wanted_data['X']]), *poptx)
         cal_y_ = fit_5th(np.array(raw_data_[Wanted_data['Y']]), *popty)
+    elif fit_num == '2D-3rd':
+        print(Wanted_data['X'])
+        # xy_values = raw_data_[Wanted_data['X', 'Y']]
+        x_2dset = np.array(raw_data_[Wanted_data['X']])
+        y_2dset = np.array(raw_data_[Wanted_data['Y']])
+        dataset = np.array(x_2dset), np.array(y_2dset)
+        cal_x_ = fit_2D(dataset, *poptx)
+        cal_y_ = fit_2D(dataset, *popty)
 
-    # cal_x_, cal_y_ = 0, 0
-
-    # print(cal_x_, cal_y_)
     return cal_x_, cal_y_
 
 def ErrorWrtRange(data_, Wanted_data_, max_point_, cal_range_, step_):
-    data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(B)', ' Y(B)'], axis=1, inplace=True)
+    data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
 
     error_dict = {}
     range_values = np.arange(step_, cal_range_+step_, step_)
-    errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
+    errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
     for fit in [1, 3, 5]:
         fit_num = fit
         print("="*300)

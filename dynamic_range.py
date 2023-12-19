@@ -53,6 +53,13 @@ for raw_file, amp_file in zip(raw_adc_files_sorted, amp_adc_files_sorted):
 tb_dataprocessing.PlotSettings()
 input_strength = np.arange(-50, 21, 5)
 plt.figure(1)
+
+for i in range(1, 5):
+    if i == 1:  # 첫 번째 시리즈에만 레이블을 지정합니다.
+        plt.semilogy(input_strength[:-5], amp_adc_data[f'adc{i}'][f' {i}Ch'], 'r', label='w/ 30dB amp')
+    else:
+        plt.semilogy(input_strength[:-5], amp_adc_data[f'adc{i}'][f' {i}Ch'], 'r')
+        
 for i in range(1, 5):
     if i == 1:  # 첫 번째 시리즈에만 레이블을 지정합니다.
         plt.semilogy(input_strength, raw_adc_data[f'adc{i}'][f' {i}Ch'], 'b', label='w/o amp')
@@ -60,11 +67,7 @@ for i in range(1, 5):
         plt.semilogy(input_strength, raw_adc_data[f'adc{i}'][f' {i}Ch'], 'b')
 
 # amp_adc_data에 대한 데이터 시리즈를 그리고, 첫 번째 시리즈에만 레이블을 추가합니다.
-for i in range(1, 5):
-    if i == 1:  # 첫 번째 시리즈에만 레이블을 지정합니다.
-        plt.semilogy(input_strength[:-5], amp_adc_data[f'adc{i}'][f' {i}Ch'], 'r', label='w/ 30dB amp')
-    else:
-        plt.semilogy(input_strength[:-5], amp_adc_data[f'adc{i}'][f' {i}Ch'], 'r')
+
 plt.title("Connecting directly S/G to electronics")
 plt.legend(loc='upper left')
 plt.xlabel("Input amplitude [dBm]")

@@ -59,10 +59,12 @@ def fit_2D(xy, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p):
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
     return a*x**3*y**3+b*x**2*y**3+c*x*y**3+d*y**3+e*x**3*y**2+f*x**2*y**2+g*x*y**1+h*y**1+i*x**3*y**1+j*x**2*y**1+k*x*y**1+l*y**1+m*x**3+n*x**2+o*x+p
 
-
+def rms(series):
+    print(series)
+    return np.sqrt(np.mean(series**2))
 
 def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
-    ver = 1
+    ver = 3
     # print(raw_data_.head())
     # print(raw_data_.groupby('x').mean())
 
@@ -86,6 +88,14 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
         ydata_fit = filtered_data[abs(filtered_data['y']) <= cal_range_][Wanted_data['Y']]
         xdata_fit.index = filtered_data[abs(filtered_data['x']) <= cal_range_]['x']
         ydata_fit.index = filtered_data[abs(filtered_data['y']) <= cal_range_]['y']
+
+    elif ver == 3:
+        mean_x = raw_data_.groupby('x').agg(np.median)
+        mean_y = raw_data_.groupby('y').agg(np.median)
+
+        xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data['X']]
+        ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data['Y']]
+
     #raw_data_.groupby('x').mean()
     #raw_data_.groupby('y').mean()
 
@@ -109,11 +119,12 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
         cal_x_ = fit_5th(np.array(raw_data_[Wanted_data['X']]), *poptx)
         cal_y_ = fit_5th(np.array(raw_data_[Wanted_data['Y']]), *popty)
     elif fit_num == '2D-3rd':
-        print(Wanted_data['X'])
+        # print(Wanted_data['X'])
         # xy_values = raw_data_[Wanted_data['X', 'Y']]
         x_2dset = np.array(raw_data_[Wanted_data['X']])
         y_2dset = np.array(raw_data_[Wanted_data['Y']])
         dataset = np.array(x_2dset), np.array(y_2dset)
+        print(dataset)
         cal_x_ = fit_2D(dataset, *poptx)
         cal_y_ = fit_2D(dataset, *popty)
 
@@ -127,9 +138,9 @@ def ErrorWrtRange(data_, Wanted_data_, max_point_, cal_range_, step_):
     errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
     for fit in [1, 3, 5]:
         fit_num = fit
-        print("="*300)
+        # print("="*300)
         cal_x_, cal_y_ = optimized_func(data_, Wanted_data_, cal_range_, fit_num)
-        print("*"*300)
+        # print("*"*300)
         data_['cal_X'], data_['cal_Y'] = cal_x_, cal_y_
         error_list = []
         for value in range_values:

@@ -11,7 +11,7 @@ number_interval = 21
 
 step = 1
 max_point = 10
-cal_range = 5
+cal_range = 3
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
@@ -54,22 +54,22 @@ mean_same_y = data.groupby('y').mean()
 print(mean_same_x)
 plt.figure(3)
 plt.subplot(221)
-plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label='on_axis')
-plt.scatter(mean_same_x.index, mean_same_x[Wanted_data['X']], label='mean_same_x')
+plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label='on_axis', s=0.5)
+plt.scatter(mean_same_x.index, mean_same_x[Wanted_data['X']], label='mean_same_x', s=0.5)
 plt.legend()
 
 plt.subplot(222)
-plt.scatter(data[data['x'] == data['y']]['y'], data[data['x'] == data['y']][Wanted_data['Y']], label='on_axis')
-plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
+plt.scatter(data[data['x'] == data['y']]['y'], data[data['x'] == data['y']][Wanted_data['Y']], label='on_axis', s=0.5)
+plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y', s=0.5)
 plt.legend()
 
 plt.subplot(223)
-plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis')
+plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=0.5)
 # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
 plt.legend()
 
 plt.subplot(224)
-plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis')
+plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=0.5)
 # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
 plt.legend()
 
@@ -79,34 +79,35 @@ x_dummy = np.arange(-max_point, max_point+step, step)
 y_dummy = x_dummy
 print(mean_same_x)
 
+'''
+선형피팅 Sensitivity 출력
+'''
 plt.figure(figsize=(10, 6))
-for i in range(4):
+for i, fit in enumerate([1, 3, 5]):
     plt.subplot(1, 4, i+1)
-    if i == 0:
-        fit_num = 1
+    if fit == 1:
         plt.title("Linear estimation")
-    elif i == 1:
-        fit_num = 3
+    elif fit == 3:
         plt.title("3rd-order polynomial")
-    elif i == 2:
-        fit_num = 5
+    elif fit == 5:
         plt.title("5th-order polynomial")
-    elif i == 3:
-        fit_num = 5 #'2D-3rd'
+    elif fit == '2D-3rd':
         plt.title("2D polynomial")
-    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit_num)
+    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
     # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
     data['cal_X'], data['cal_Y']  = cal_x, cal_y
 
     mean_same_x = data.groupby('x').mean()['cal_X']
     mean_same_y = data.groupby('y').mean()['cal_Y']
     
-    plt.scatter(x_dummy, y_dummy, c='k',  lw=0.5, ls='-')
+    plt.plot(x_dummy, y_dummy, c='k',  lw=0.5, ls='-')
     plt.scatter(mean_same_x.index, mean_same_x.values, lw=0.8, marker='^', facecolor='none', edgecolor='b')
     plt.scatter(mean_same_y.index, mean_same_y.values, marker=',', facecolor='none', edgecolors='r')
     # plt.title("Linear calibration result")
     plt.xlabel("Wire position [mm]")
     plt.ylabel("Linear Estimation [mm]")
+    plt.xlim([-max_point, max_point])
+    plt.ylim([-max_point, max_point])
     plt.gca().set_aspect('equal')
     plt.tight_layout()
 # plt.ylabel("K$_{x, y}$ X DOS ($\Delta/\Sigma$)")
@@ -116,22 +117,13 @@ for i in range(4):
 # %%
 fig1 = plt.figure(figsize=(12, 6))
 # fig1.set_tight_layout(True)
-for i in range(4):
-
+for i, fit in enumerate([1, 3, 5]):
     '''
     3D dimension plotting
     '''
     fig = plt.figure(10+i)
     ax = fig.add_subplot(111)
-    if i == 0:
-        fit_num = 1
-    elif i == 1:
-        fit_num = 3
-    elif i == 2:
-        fit_num = 5
-    elif i == 3:
-        fit_num = 5 #'2D-3rd'
-    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit_num)
+    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
     # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
     data['cal_X'], data['cal_Y']  = cal_x, cal_y
 
@@ -167,11 +159,11 @@ for i in range(4):
     # Create the plot
     # fig = plt.figure(10+i)
     ax = fig.add_subplot(111, projection='3d')
-    if fit_num == 3:
+    if fit == 3:
         fig.suptitle("3rd polynomial fitting", fontsize=16, fontweight='bold', x=0.57)
-    elif fit_num == 1:
+    elif fit == 1:
         fig.suptitle("Linear fitting", fontsize=16, fontweight='bold', x=0.57)
-    elif fit_num == 5:
+    elif fit == 5:
         fig.suptitle("5th polynomial fitting", fontsize=18, fontweight='bold', x=0.5)
     # ax.contour(x, y, z, level=20, colors="k", linewidths=1) , vmin=vmin, vmax=vmax
     surf = ax.plot_surface(x, y, z, cmap='jet', rstride=1, cstride=1, antialiased=True, vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
@@ -192,13 +184,13 @@ for i in range(4):
     '''
     ax2 = fig1.add_subplot(2,2,i+1)
     # fig1.subplots_adjust(wspace=4, hspace=4)
-    if fit_num == 3:
+    if fit == 3:
         ax2.set_title("3rd polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
-    elif fit_num == 1:
+    elif fit == 1:
         ax2.set_title("Linear fitting", fontsize=14, fontweight='bold', x=0.5)
-    elif fit_num == 5:
+    elif fit == 5:
         ax2.set_title("5th polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
-    elif fit_num == '2D-3rd':
+    elif fit == '2D-3rd':
         ax2.set_title("2D multi-poly fitting", fontsize=14, fontweight='bold', x=0.4)
 
     cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax

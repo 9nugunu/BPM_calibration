@@ -12,6 +12,7 @@ def PlotSettings():
     plt.rcParams['axes.titlesize'] = 16
     plt.rcParams["axes.titleweight"] = "bold"
     plt.rcParams["font.family"] = 'Times New Roman'
+    plt.rcParams['lines.markersize'] ** 2
 
 def add_col_axis(number_interval, step, max_point):
     '''
@@ -131,7 +132,7 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
     return cal_x_, cal_y_
 
 def ErrorWrtRange(data_, Wanted_data_, max_point_, cal_range_, step_):
-    data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
+    # data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
 
     error_dict = {}
     range_values = np.arange(step_, cal_range_+step_, step_)

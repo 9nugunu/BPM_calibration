@@ -11,13 +11,13 @@ number_interval = 21
 
 step = 1
 max_point = 10
-cal_range = 3
+cal_range = 5
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
-filename = 'BPM01_352MHz_14dBm_2port_01_-10to10_100_20231219_155542.csv'
+filename = 'BPM01_65MHz_20dBm_2port_01_-10to10_100_20231220_182940.csv'
 file_dir = './-5_5_dataset/' + Port #+ 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
 os.chdir('../' + file_dir)
 print(os.getcwd())
@@ -54,22 +54,22 @@ mean_same_y = data.groupby('y').mean()
 print(mean_same_x)
 plt.figure(3)
 plt.subplot(221)
-plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label='on_axis', s=0.5)
-plt.scatter(mean_same_x.index, mean_same_x[Wanted_data['X']], label='mean_same_x', s=0.5)
+plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label='on_axis', s=50)
+plt.scatter(mean_same_x.index, mean_same_x[Wanted_data['X']], label='mean_same_x', s=50)
 plt.legend()
 
 plt.subplot(222)
-plt.scatter(data[data['x'] == data['y']]['y'], data[data['x'] == data['y']][Wanted_data['Y']], label='on_axis', s=0.5)
-plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y', s=0.5)
+plt.scatter(data[data['x'] == data['y']]['y'], data[data['x'] == data['y']][Wanted_data['Y']], label='on_axis', s=50)
+plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y', s=50)
 plt.legend()
 
 plt.subplot(223)
-plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=0.5)
+plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=50)
 # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
 plt.legend()
 
 plt.subplot(224)
-plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=0.5)
+plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=50)
 # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
 plt.legend()
 
@@ -113,7 +113,44 @@ for i, fit in enumerate([1, 3, 5]):
 # plt.ylabel("K$_{x, y}$ X DOS ($\Delta/\Sigma$)")
     plt.grid()
 
+x_dummy = [np.arange(-max_point, max_point+step, step)] * number_interval
+y_dummy = [i for i in np.arange(-max_point, max_point+step, step) for _ in range(number_interval)]
 
+# print(x_dummy)
+# print(len(y_dummy))
+'''
+2D mapping
+'''
+plt.figure(figsize=(10, 10))
+for i, fit in enumerate([1, 3, 5]):
+    plt.subplot(1, 3, i+1)
+    if fit == 1:
+        plt.title("Linear estimation")
+    elif fit == 3:
+        plt.title("3rd-order polynomial")
+    elif fit == 5:
+        plt.title("5th-order polynomial")
+    elif fit == '2D-3rd':
+        plt.title("2D polynomial")
+    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
+    # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
+    data['cal_X'], data['cal_Y']  = cal_x, cal_y
+    cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][['cal_X', 'cal_Y']]
+
+    data['cal_X'], data['cal_Y'] = data['cal_X'] - cal_offset['cal_X'].values, data['cal_Y'] - cal_offset['cal_Y'].values
+    
+    plt.scatter(x_dummy, y_dummy, s=100, marker='.', edgecolor='b')
+    plt.scatter(data['cal_X'], data['cal_Y'], s=50, marker='o', facecolor='none', edgecolors='r')
+    # plt.title("Linear calibration result")
+    plt.xlabel("X [mm]")
+    plt.ylabel("Y [mm]")
+    plt.xlim([-max_point-step, max_point+step])
+    plt.ylim([-max_point-step, max_point+step])
+    plt.gca().set_aspect('equal')
+    plt.tight_layout()
+# plt.ylabel("K$_{x, y}$ X DOS ($\Delta/\Sigma$)")
+    plt.grid()
+    
 # %%
 fig1 = plt.figure(figsize=(12, 6))
 # fig1.set_tight_layout(True)
@@ -124,7 +161,6 @@ for i, fit in enumerate([1, 3, 5]):
     fig = plt.figure(10+i)
     ax = fig.add_subplot(111)
     cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
-    # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
     data['cal_X'], data['cal_Y']  = cal_x, cal_y
 
     # Scatter plots
@@ -156,6 +192,7 @@ for i, fit in enumerate([1, 3, 5]):
     import matplotlib as mpl
     vmin = 0
     vmax = 0.65 #round(np.max(z),2) # 0.5 #round(np.max(z),2) + 0.005#0.8 #round(np.max(z),2) +0.005
+
     # Create the plot
     # fig = plt.figure(10+i)
     ax = fig.add_subplot(111, projection='3d')
@@ -223,7 +260,7 @@ for j in range(start_, file_+1):
     # print(os.getcwd())
 
     data = pd.read_csv(filename, index_col=False)
-    # data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
+    data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
     data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
     tb_dataprocessing.ErrorWrtRange(data, Wanted_data, max_point, cal_range, step)
 plt.show()

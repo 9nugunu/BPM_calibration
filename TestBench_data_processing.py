@@ -131,12 +131,12 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
 
     return cal_x_, cal_y_
 
-def ErrorWrtRange(data_, Wanted_data_, max_point_, cal_range_, step_):
+def ErrorWrtRange(data_, Wanted_data_, cal_range_, step_, error_dict_, errors_all_):
     # data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
 
-    error_dict = {}
+    # error_dict = {}
     range_values = np.arange(step_, cal_range_+step_, step_)
-    errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
+    # errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
     for fit in [1, 3, 5]:
         fit_num = fit
         # print("="*300)
@@ -171,49 +171,8 @@ def ErrorWrtRange(data_, Wanted_data_, max_point_, cal_range_, step_):
             #     all_errors[fit] = []
             # print(error_list)
         # print(f"fit: {fit}, 5th_error_list: {error_list[5]} **************************************")
-        errors_all[fit].append(error_list)
+        errors_all_[fit].append(error_list)
             
-        error_dict[fit] = error_list
+        error_dict_[fit] = error_list
         
-        # errors_std, errors_se, errors_mean, errors_rms = {}, {}, {}, {}
-        # sample_size = len(next(iter(errors_all.values())))  # 가정: 모든 fit 값들에 대해 샘플의 크기가 동일하다.
-        # for fit, errors in errors_all.items():
-        #     print(len(errors))
-        #     errors_std[fit] = np.std(errors, axis=0)
-        #     errors_se[fit] = errors_std[fit] / np.sqrt(sample_size)
-        #     errors_mean[fit] = np.mean(errors, axis=0)
-        #     errors_rms[fit] = np.sqrt(np.mean(np.array(errors)**2, axis=0))
-
-    # Plot the errors
-    plt.figure()
-    markers = ['^', 's', 'D', '.', '<']
-    p_color = ['r', 'b', 'magenta', 'g', 'grey']
-    for i, (fit, error_list) in enumerate(error_dict.items()):
-        plt.plot(range_values, error_list, label=f'n = {fit}', marker=markers[2-i], c=p_color[i])
-
-        # Find the maximum x where error is less than or equal to 0.10
-        # max_x = np.max(np.array(range_values)[np.array(error_list) <= 0.10])
-        # if i < 2:
-        #     y_value_at_3 = error_list[np.where(np.array(range_values) == 3.0)[0][0]] # Extracting the y-value at x=3
-        #     plt.annotate(f"{y_value_at_3:.2f}", (3, y_value_at_3), textcoords="offset points", xytext=(-2,-40), color=p_color[i], ha='right', arrowprops=dict(arrowstyle="->", color=p_color[i]))
-        
-        #     # Annotation for x=4
-        #     y_value_at_3_5 = error_list[np.where(np.array(range_values) == 3.5)[0][0]] # Extracting the y-value at x=4
-        #     plt.annotate(f"{y_value_at_3_5:.2f}", (3.5, y_value_at_3_5), textcoords="offset points", xytext=(14,10), color=p_color[i], ha='right')
-            
-        #     # Annotation for x=4
-        #     y_value_at_4 = error_list[np.where(np.array(range_values) == 4.0)[0][0]] # Extracting the y-value at x=4
-        #     plt.annotate(f"{y_value_at_4:.2f}", (4, y_value_at_4), textcoords="offset points", xytext=(80,-23), color=p_color[i], ha='right', arrowprops=dict(arrowstyle="->", color=p_color[i]))
-        
-        plt.axvline(3.0, color='gray', linestyle='--')
-        plt.axvline(4.0, color='gray', linestyle='--')
-    plt.axhline(100, color='gray', linestyle='--')
-    plt.xlabel('wire movement range x, y [mm]')
-    plt.ylabel(u'Average error [\u03bcm]')
-    # plt.ylabel(u"\u03bcs")
-    plt.xticks(range_values)
-    # y_ticks = np.arange(0, 201, 25)
-    # plt.yticks(y_ticks)
-    # plt.ylim(0, 0.3)
-    plt.legend()
-    plt.show()
+    return error_dict_, errors_all_

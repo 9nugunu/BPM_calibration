@@ -129,6 +129,7 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
         cal_x_ = fit_2D(dataset, *poptx)
         cal_y_ = fit_2D(dataset, *popty)
 
+    cal_x_, cal_y_
     return cal_x_, cal_y_
 
 def ErrorWrtRange(data_, Wanted_data_, cal_range_, step_, error_dict_, errors_all_):
@@ -143,6 +144,11 @@ def ErrorWrtRange(data_, Wanted_data_, cal_range_, step_, error_dict_, errors_al
         cal_x_, cal_y_ = optimized_func(data_, Wanted_data_, cal_range_, fit_num)
         # print("*"*300)
         data_['cal_X'], data_['cal_Y'] = cal_x_, cal_y_
+
+        cal_offset = data_[(data_['x'] == 0) & (data_['y'] == 0)][['cal_X', 'cal_Y']]
+
+        data_['cal_X'], data_['cal_Y'] = data_['cal_X'] - cal_offset['cal_X'].values, data_['cal_Y'] - cal_offset['cal_Y'].values
+
         error_list = []
         for value in range_values:
             mask = (np.abs(data_['x']) <= value) & (np.abs(data_['y']) <= value)

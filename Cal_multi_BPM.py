@@ -12,7 +12,7 @@ number_interval = 21
 
 step = 1
 max_point = 10
-cal_range = 5
+cal_range = 7
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
@@ -222,16 +222,23 @@ for file in file_list[1:2]:
         '''
         2D plance plotting
         '''
+        # fig = plt.figure(10+i)
+        cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
+        data['cal_X'], data['cal_Y']  = cal_x, cal_y
+        cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][['cal_X', 'cal_Y']]
+
+        data['cal_X'], data['cal_Y'] = data['cal_X'] - cal_offset['cal_X'].values, data['cal_Y'] - cal_offset['cal_Y'].values
+
         vmin = 0
-        vmax = 0.65
+        vmax = 1
         x_values = np.arange(max_point, -max_point-step, -step) #data['x'].to_numpy()
         y_values = x_values #data['y'].to_numpy()
-        cal_XX, cal_YY = cal_x.reshape(len(x_values), len(x_values)), cal_y.reshape(len(x_values), len(x_values))
+        cal_XX, cal_YY = data['cal_X'].values.reshape(len(x_values), len(x_values)), data['cal_Y'].values.reshape(len(x_values), len(x_values))
 
         x, y = np.meshgrid(x_values, y_values)    
         error_xx, error_yy = x - cal_XX, y - cal_YY
         # z = abs(error_xx) + abs(error_yy)
-        z = np.sqrt( error_xx **2 + error_yy ** 2)
+        z = np.sqrt( error_xx **2 + error_yy ** 2) * 10**3
         ax2 = fig1.add_subplot(2,2,i+1)
         # fig1.subplots_adjust(wspace=4, hspace=4)
         if fit == 3:
@@ -243,15 +250,16 @@ for file in file_list[1:2]:
         elif fit == '2D-3rd':
             ax2.set_title("2D multi-poly fitting", fontsize=14, fontweight='bold', x=0.4)
 
-        cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
+        cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax*10**3)# , vmin=vmin, vmax=vmax
         cax, _ = mpl.colorbar.make_axes(ax2)
         cbar = mpl.colorbar.ColorbarBase(cax, cmap=cs.cmap, norm=cs.norm)
         # cbar.set_ticks([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, vmax])
-        cs2 = ax2.contour(cs, levels=cs.levels[::30], colors='black')
+        # cs2 = ax2.contour(cs, levels=cs.levels[::2], colors='black')
+        cs2 = ax2.contour(cs, levels=[100], colors='black')
+        cbar.add_lines(cs2)
         cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
-        cbar.set_label('Error [mm]', rotation=270, labelpad=20)
-        # cbar.add_lines(cs2)
-        ax2.clabel(cs2, fmt='%2.1f', colors='magenta', fontsize=16)
+        cbar.set_label(u'Error [\u03bcm]', rotation=270, labelpad=10)
+        ax2.clabel(cs2, fmt='%2.1f', colors='magenta', fontsize=14)
         ax2.set_xlabel('X [mm]')
         ax2.set_ylabel('Y [mm]')
         ax2.set_xlim([-cal_range, cal_range])
@@ -275,7 +283,7 @@ for file in file_list:
     error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(data, Wanted_data, cal_range, step, error_dict, errors_all)
 
     print(error_dict)
-    sample_size = len(next(iter(errors_all.values())))  # 가정: 모든 fit 값들에 대해 샘플의 크기가 동일하다.
+    sample_size = len(next(iter(errors_all.values())))
     for fit, errors in errors_all.items():
         print(len(errors))
         errors_std[fit] = np.std(errors, axis=0)
@@ -306,7 +314,7 @@ for i, (fit, error_list) in enumerate(error_dict.items()):
     plt.axvline(3.0, color='gray', linestyle='--')
     plt.axvline(4.0, color='gray', linestyle='--')
 plt.axhline(100, color='gray', linestyle='--')
-plt.xlabel('wire movement range x, y [mm]')
+plt.xlabel('wire movement plane x, y [mm²]')
 plt.ylabel(u'Average error [\u03bcm]')
 # plt.ylabel(u"\u03bcs")
 plt.xticks(range_values)

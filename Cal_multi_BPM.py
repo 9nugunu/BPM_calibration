@@ -12,9 +12,11 @@ number_interval = 21
 
 step = 1
 max_point = 10
-cal_range = 7
+cal_range = 10
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
+
+cal_method = [1, 3, 5, '2D-3rd'] # [1, 3, 5, '2D-3rd']
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
@@ -91,7 +93,7 @@ for file in file_list[1:2]:
     선형피팅 Sensitivity 출력
     '''
     plt.figure(figsize=(10, 6))
-    for i, fit in enumerate([1, 3, 5]):
+    for i, fit in enumerate(cal_method):
         plt.subplot(1, 4, i+1)
         if fit == 1:
             plt.title("Linear estimation")
@@ -130,8 +132,8 @@ for file in file_list[1:2]:
     2D mapping
     '''
     plt.figure(figsize=(12, 8))
-    for i, fit in enumerate([1, 3, 5]):
-        plt.subplot(1, 3, i+1)
+    for i, fit in enumerate(cal_method):
+        plt.subplot(1, len(cal_method), i+1)
         if fit == 1:
             plt.title("Linear estimation")
         elif fit == 3:
@@ -162,7 +164,7 @@ for file in file_list[1:2]:
     # %%
     fig1 = plt.figure(figsize=(10, 8))
     # fig1.set_tight_layout(True)
-    for i, fit in enumerate([1, 3, 5]):
+    for i, fit in enumerate(cal_method):
         '''
         3D dimension plotting
 
@@ -314,7 +316,7 @@ for i, (fit, error_list) in enumerate(error_dict.items()):
     plt.axvline(3.0, color='gray', linestyle='--')
     plt.axvline(4.0, color='gray', linestyle='--')
 plt.axhline(100, color='gray', linestyle='--')
-plt.xlabel('wire movement plane x, y [mm²]')
+plt.xlabel('wire movement horizontal plane [mm²]')
 plt.ylabel(u'Average error [\u03bcm]')
 # plt.ylabel(u"\u03bcs")
 plt.xticks(range_values)

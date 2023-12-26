@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import TestBench_data_processing as tb_dataprocessing
 import matplotlib.ticker as ticker
 import matplotlib as mpl
+from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
 
 tb_dataprocessing.PlotSettings()
 
@@ -12,11 +13,11 @@ number_interval = 21
 
 step = 1
 max_point = 10
-cal_range = 10
+cal_range = 6
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 
-cal_method = [1, 3, 5, '2D-3rd'] # [1, 3, 5, '2D-3rd']
+cal_method = [1, 3, 5]#, '2D-3rd'] # [1, 3, 5, '2D-3rd']
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
@@ -61,27 +62,52 @@ for file in file_list[1:2]:
     mean_same_x = data.groupby('x').mean()
     mean_same_y = data.groupby('y').mean()
 
-    print(mean_same_x)
-    plt.figure(3)
-    plt.subplot(221)
-    plt.scatter(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label='on_axis', s=50)
-    plt.scatter(mean_same_x.index, mean_same_x[Wanted_data['X']], label='mean_same_x', s=50)
-    plt.legend()
+    median_x = data.groupby('x').agg(np.median)
+    median_y = data.groupby('y').agg(np.median)
+    # print(mean_same_x)
+    fig3, ax3 = plt.subplots()
+    
+    # plt.subplot(111)
+    ax3.set_title("Four different sensivitiy curve")
+    ax3.plot(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label=r'$S_{x=y}$', c='g')
+    ax3.plot(mean_same_x.index, mean_same_x[Wanted_data['X']], label=r'$S_{\bar{x}}$', c='r', linestyle='--')
+    ax3.plot(median_x.index, median_x[Wanted_data['X']], label=r'$S_{Med(x)}$', c='b', linestyle="dashdot")
+    # plt.legend()
 
-    plt.subplot(222)
-    plt.scatter(data[data['x'] == data['y']]['y'], data[data['x'] == data['y']][Wanted_data['Y']], label='on_axis', s=50)
-    plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y', s=50)
-    plt.legend()
+    # plt.subplot(122)
+    ax3.scatter(data['x'], data[Wanted_data['X']], label=r'$S_{coupling}$', s=10, c='black')
+    # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y', s=10)
+    axins = zoomed_inset_axes(ax3, 2, loc='lower right', axes_kwargs={'fc':'lightgray'})
 
-    plt.subplot(223)
-    plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=50)
-    # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
-    plt.legend()
+    axins.plot(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label=r'$S_{x=y}$', c='g')
+    axins.plot(mean_same_x.index, mean_same_x[Wanted_data['X']], label=r'$S_{\bar{x}}$', c='r', linestyle='--')
+    axins.plot(median_x.index, median_x[Wanted_data['X']], label=r'$S_{Med(x)}$', c='b', 
+    linestyle="dashdot")
+    axins.scatter(data['x'], data[Wanted_data['X']], label=r'$S_{coupling}$', s=10, c='black')
+    axins.set_xlim(7, 10.5)
+    axins.set_ylim(0.5, 0.8)
+    axins.set_xticks([])
+    axins.set_yticks([])
+    axins.grid()
 
-    plt.subplot(224)
-    plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=50)
-    # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
-    plt.legend()
+    mark_inset(ax3, axins, loc1=2, loc2=1, ec='0.5')
+    ax3.set_xlabel("X position [mm]")
+    ax3.set_ylabel(r"$\Delta/\Sigma$")
+    ax3.legend()
+    plt.savefig('Four_diff_sensiti.png',
+        format='png',
+        dpi=600,
+    bbox_inches='tight')
+
+    # plt.subplot(223)
+    # plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=10)
+    # # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
+    # plt.legend()
+
+    # plt.subplot(224)
+    # plt.scatter(data['y'], data[Wanted_data['Y']], label='on_axis', s=10)
+    # # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y')
+    # plt.legend()
 
 
     # print(data.head())

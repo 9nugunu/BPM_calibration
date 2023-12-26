@@ -10,17 +10,18 @@ print(os.getcwd())
 
 tb_dataprocessing.PlotSettings()
 
-number_interval = 33
+number_interval = 21
 
-step = 0.5
-max_point = 8
-cal_range = 8
+step = 1
+max_point = 10
+cal_range = 6
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
-cal_method = [1, 3, 5, '2D-3rd'] # [1, 3, 5, '2D-3rd']
+cal_method = [1, 3, 5]#, '2D-3rd'] # [1, 3, 5, '2D-3rd']
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
-filename = 'BPM01_352MHz_14dBm_2port_01_1th_5020231218_205303.csv'
+# filename = 'BPM01_352MHz_14dBm_2port_01_1th_5020231218_205303.csv'
+filename = 'BPM01_200MHz_20dBm_2port_01_-10to10_100_20231220_152537.csv'
 file_dir = './-5_5_dataset/' + Port #+ 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
 os.chdir('../' + file_dir)
 print(os.getcwd())
@@ -159,6 +160,72 @@ fig1 = plt.figure(figsize=(10, 8))
 # fig1.set_tight_layout(True)
 for i, fit in enumerate(cal_method):
     '''
+    3D plotting
+    '''
+
+    '''
+    2D plane plotting
+    '''
+    # fig = plt.figure(10+i)
+    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
+    data['cal_X'], data['cal_Y']  = cal_x, cal_y
+    cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][['cal_X', 'cal_Y']]
+
+    data['cal_X'], data['cal_Y'] = data['cal_X'] - cal_offset['cal_X'].values, data['cal_Y'] - cal_offset['cal_Y'].values
+
+    vmin = 0
+    vmax = 1
+    x_values = np.arange(max_point, -max_point-step, -step) #data['x'].to_numpy()
+    y_values = x_values #data['y'].to_numpy()
+    cal_XX, cal_YY = data['cal_X'].values.reshape(len(x_values), len(x_values)), data['cal_Y'].values.reshape(len(x_values), len(x_values))
+
+    x, y = np.meshgrid(x_values, y_values)    
+    error_xx, error_yy = x - cal_XX, y - cal_YY
+    # z = abs(error_xx) + abs(error_yy)
+    z = np.sqrt(error_xx **2 + error_yy ** 2) * 10**3
+    ax2 = fig1.add_subplot(2,2,i+1)
+    # fig1.subplots_adjust(wspace=4, hspace=4)
+    if fit == 3:
+        ax2.set_title("3rd polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
+    elif fit == 1:
+        ax2.set_title("Linear fitting", fontsize=14, fontweight='bold', x=0.5)
+    elif fit == 5:
+        ax2.set_title("5th polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
+    elif fit == '2D-3rd':
+        ax2.set_title("2D multi-poly fitting", fontsize=14, fontweight='bold', x=0.4)
+
+    cs = ax2.contourf(x, y, z, 20, cmap='jet', vmin=vmin, vmax=vmax*10**3)# , vmin=vmin, vmax=vmax
+    cax, _ = mpl.colorbar.make_axes(ax2)
+    cbar = mpl.colorbar.ColorbarBase(cax, cmap=cs.cmap, norm=cs.norm)
+    # cbar.set_ticks([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, vmax])
+    # cs2 = ax2.contour(cs, levels=cs.levels[::2], colors='black')
+    cs2 = ax2.contour(cs, levels=[100], colors='black')
+    cbar.add_lines(cs2)
+    cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+    cbar.set_label(u'Error [\u03bcm]', rotation=270, labelpad=10)
+    ax2.clabel(cs2, fmt='%2.1f', colors='magenta', fontsize=14)
+    ax2.set_xlabel('X [mm]')
+    ax2.set_ylabel('Y [mm]')
+    ax2.set_xlim([-cal_range-1, cal_range+1])
+    ax2.set_ylim([-cal_range-1, cal_range+1])
+
+# %%
+start_ = 1
+file_ = 1
+error_dict = {}
+range_values = np.arange(step, max_point+step, step)
+errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
+
+# file_path = os.path.join(file_dir, filename)
+data = pd.read_csv(filename, index_col=False)
+
+data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
+data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
+error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(data, Wanted_data, cal_range, step, error_dict, errors_all)
+plt.show()
+
+
+'''
     3D dimension plotting
 
     fig = plt.figure(10+i)
@@ -213,64 +280,3 @@ for i, fit in enumerate(cal_method):
     ax.yaxis.set_ticks_position('top')
     plt.close()
     '''
-
-    '''
-    2D plance plotting
-    '''
-    # fig = plt.figure(10+i)
-    cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
-    data['cal_X'], data['cal_Y']  = cal_x, cal_y
-    cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][['cal_X', 'cal_Y']]
-
-    data['cal_X'], data['cal_Y'] = data['cal_X'] - cal_offset['cal_X'].values, data['cal_Y'] - cal_offset['cal_Y'].values
-
-    vmin = 0
-    vmax = 1
-    x_values = np.arange(max_point, -max_point-step, -step) #data['x'].to_numpy()
-    y_values = x_values #data['y'].to_numpy()
-    cal_XX, cal_YY = data['cal_X'].values.reshape(len(x_values), len(x_values)), data['cal_Y'].values.reshape(len(x_values), len(x_values))
-
-    x, y = np.meshgrid(x_values, y_values)    
-    error_xx, error_yy = x - cal_XX, y - cal_YY
-    # z = abs(error_xx) + abs(error_yy)
-    z = np.sqrt( error_xx **2 + error_yy ** 2) * 10**3
-    ax2 = fig1.add_subplot(2,2,i+1)
-    # fig1.subplots_adjust(wspace=4, hspace=4)
-    if fit == 3:
-        ax2.set_title("3rd polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
-    elif fit == 1:
-        ax2.set_title("Linear fitting", fontsize=14, fontweight='bold', x=0.5)
-    elif fit == 5:
-        ax2.set_title("5th polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
-    elif fit == '2D-3rd':
-        ax2.set_title("2D multi-poly fitting", fontsize=14, fontweight='bold', x=0.4)
-
-    cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax*10**3)# , vmin=vmin, vmax=vmax
-    cax, _ = mpl.colorbar.make_axes(ax2)
-    cbar = mpl.colorbar.ColorbarBase(cax, cmap=cs.cmap, norm=cs.norm)
-    # cbar.set_ticks([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, vmax])
-    # cs2 = ax2.contour(cs, levels=cs.levels[::2], colors='black')
-    cs2 = ax2.contour(cs, levels=[100], colors='black')
-    cbar.add_lines(cs2)
-    cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
-    cbar.set_label(u'Error [\u03bcm]', rotation=270, labelpad=10)
-    ax2.clabel(cs2, fmt='%2.1f', colors='magenta', fontsize=14)
-    ax2.set_xlabel('X [mm]')
-    ax2.set_ylabel('Y [mm]')
-    ax2.set_xlim([-cal_range, cal_range])
-    ax2.set_ylim([-cal_range, cal_range])
-
-# %%
-start_ = 1
-file_ = 1
-error_dict = {}
-range_values = np.arange(step, max_point+step, step)
-errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
-
-# file_path = os.path.join(file_dir, filename)
-data = pd.read_csv(filename, index_col=False)
-
-data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
-data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
-error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(data, Wanted_data, cal_range, step, error_dict, errors_all)
-plt.show()

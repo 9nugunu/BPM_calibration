@@ -65,7 +65,7 @@ def rms(series):
     return np.sqrt(np.mean(series**2))
 
 def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
-    ver = 3
+    ver = 0
     # print(raw_data_.head())
     # print(raw_data_.groupby('x').mean())
 
@@ -129,16 +129,15 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
         cal_x_ = fit_2D(dataset, *poptx)
         cal_y_ = fit_2D(dataset, *popty)
 
-    cal_x_, cal_y_
     return cal_x_, cal_y_
 
-def ErrorWrtRange(data_, Wanted_data_, cal_range_, step_, error_dict_, errors_all_):
+def ErrorWrtRange(data_, Wanted_data_, cal_range_, step_, error_dict_, errors_all_, cal_method_):
     # data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
 
     # error_dict = {}
     range_values = np.arange(step_, cal_range_+step_, step_)
     # errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
-    for fit in [1, 3, 5]:
+    for fit in cal_method_:
         fit_num = fit
         # print("="*300)
         cal_x_, cal_y_ = optimized_func(data_, Wanted_data_, cal_range_, fit_num)

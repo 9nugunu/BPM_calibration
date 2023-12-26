@@ -94,7 +94,7 @@ for file in file_list[1:2]:
     '''
     plt.figure(figsize=(10, 6))
     for i, fit in enumerate(cal_method):
-        plt.subplot(1, 4, i+1)
+        plt.subplot(1, len(cal_method), i+1)
         if fit == 1:
             plt.title("Linear estimation")
         elif fit == 3:
@@ -167,58 +167,6 @@ for file in file_list[1:2]:
     for i, fit in enumerate(cal_method):
         '''
         3D dimension plotting
-
-        fig = plt.figure(10+i)
-        ax = fig.add_subplot(111)
-        cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
-        data['cal_X'], data['cal_Y']  = cal_x, cal_y
-
-        # Scatter plots
-        ax.scatter(data['x'], data['y'], marker='o', fc='none', edgecolors='r', lw=1, s=50)
-        ax.scatter(cal_x, cal_y, marker='4', c='blue', s=50)
-
-        ax.set_xlabel('X [mm]', fontsize=14)
-        ax.set_ylabel('Y [mm]', fontsize=14)
-        ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-        ax.set_aspect('equal', adjustable='box')
-
-        # Adjusting the legend
-        legend = ax.legend(['Wire', 'Measured'], loc='upper left', bbox_to_anchor=(0.64,1.20))
-        legend.get_frame().set_edgecolor('black')
-
-
-        x_values = np.arange(max_point, -max_point-step, -step) #data['x'].to_numpy()
-        y_values = x_values #data['y'].to_numpy()
-        # len(x_values)
-        cal_XX, cal_YY = cal_x.reshape(len(x_values), len(x_values)), cal_y.reshape(len(x_values), len(x_values))
-        # Convert Series to Numpy arrays
-
-        x, y = np.meshgrid(x_values, y_values)    
-        error_xx, error_yy = x - cal_XX, y - cal_YY
-        # z = abs(error_xx) + abs(error_yy)
-        z = np.sqrt( error_xx **2 + error_yy ** 2)
-
-        # Create the plot
-        # fig = plt.figure(10+i)
-        ax = fig.add_subplot(111, projection='3d')
-        if fit == 3:
-            fig.suptitle("3rd polynomial fitting", fontsize=16, fontweight='bold', x=0.57)
-        elif fit == 1:
-            fig.suptitle("Linear fitting", fontsize=16, fontweight='bold', x=0.57)
-        elif fit == 5:
-            fig.suptitle("5th polynomial fitting", fontsize=18, fontweight='bold', x=0.5)
-        # ax.contour(x, y, z, level=20, colors="k", linewidths=1) , vmin=vmin, vmax=vmax
-        surf = ax.plot_surface(x, y, z, cmap='jet', rstride=1, cstride=1, antialiased=True, vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
-        ax.set_xlabel('X [mm]', labelpad=3)
-
-        # ax.xaxis.majorTicks[0].set_pad(15)
-        ax.set_ylabel('Y [mm]', labelpad=3)
-        
-        ax.set_zticks([0.2, 0.4, 0.6])
-
-        ax.view_init(elev=50)
-        ax.yaxis.set_ticks_position('top')
-        plt.close()
         '''
 
         '''
@@ -270,19 +218,23 @@ for file in file_list[1:2]:
 # %%
 error_dict = {}
 range_values = np.arange(step, cal_range+step, step)
-errors_all = {1: [], 3: [], 5: []}
+# errors_all = {1: [], 3:[], 5:[], '2D-3rd': []}
+errors_all = dict.fromkeys(cal_method, [])
+print(errors_all)
+# os.exit()
 errors_std, errors_se, errors_mean, errors_rms = {}, {}, {}, {}
 
 '''
 범위에따른 에러 그래프
 '''
 for file in file_list:
+    # errors_all = dict.fromkeys(cal_method, [])
     file_path = os.path.join(file_dir, file)
     data = pd.read_csv(file_path, index_col=False)
     
     data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
     data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
-    error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(data, Wanted_data, cal_range, step, error_dict, errors_all)
+    error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(data, Wanted_data, cal_range, step, error_dict, errors_all, cal_method)
 
     print(error_dict)
     sample_size = len(next(iter(errors_all.values())))
@@ -325,3 +277,61 @@ plt.xticks(range_values)
 # plt.ylim(0, 0.3)
 plt.legend()
 plt.show()
+
+
+
+'''
+3D plotting
+        fig = plt.figure(10+i)
+        ax = fig.add_subplot(111)
+        cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
+        data['cal_X'], data['cal_Y']  = cal_x, cal_y
+
+        # Scatter plots
+        ax.scatter(data['x'], data['y'], marker='o', fc='none', edgecolors='r', lw=1, s=50)
+        ax.scatter(cal_x, cal_y, marker='4', c='blue', s=50)
+
+        ax.set_xlabel('X [mm]', fontsize=14)
+        ax.set_ylabel('Y [mm]', fontsize=14)
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+        ax.set_aspect('equal', adjustable='box')
+
+        # Adjusting the legend
+        legend = ax.legend(['Wire', 'Measured'], loc='upper left', bbox_to_anchor=(0.64,1.20))
+        legend.get_frame().set_edgecolor('black')
+
+
+        x_values = np.arange(max_point, -max_point-step, -step) #data['x'].to_numpy()
+        y_values = x_values #data['y'].to_numpy()
+        # len(x_values)
+        cal_XX, cal_YY = cal_x.reshape(len(x_values), len(x_values)), cal_y.reshape(len(x_values), len(x_values))
+        # Convert Series to Numpy arrays
+
+        x, y = np.meshgrid(x_values, y_values)    
+        error_xx, error_yy = x - cal_XX, y - cal_YY
+        # z = abs(error_xx) + abs(error_yy)
+        z = np.sqrt( error_xx **2 + error_yy ** 2)
+
+        # Create the plot
+        # fig = plt.figure(10+i)
+        ax = fig.add_subplot(111, projection='3d')
+        if fit == 3:
+            fig.suptitle("3rd polynomial fitting", fontsize=16, fontweight='bold', x=0.57)
+        elif fit == 1:
+            fig.suptitle("Linear fitting", fontsize=16, fontweight='bold', x=0.57)
+        elif fit == 5:
+            fig.suptitle("5th polynomial fitting", fontsize=18, fontweight='bold', x=0.5)
+        # ax.contour(x, y, z, level=20, colors="k", linewidths=1) , vmin=vmin, vmax=vmax
+        surf = ax.plot_surface(x, y, z, cmap='jet', rstride=1, cstride=1, antialiased=True, vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
+        ax.set_xlabel('X [mm]', labelpad=3)
+
+        # ax.xaxis.majorTicks[0].set_pad(15)
+        ax.set_ylabel('Y [mm]', labelpad=3)
+        
+        ax.set_zticks([0.2, 0.4, 0.6])
+
+        ax.view_init(elev=50)
+        ax.yaxis.set_ticks_position('top')
+        plt.close()
+'''
+# %%

@@ -65,7 +65,7 @@ def rms(series):
     return np.sqrt(np.mean(series**2))
 
 def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
-    ver = 3
+    ver = 2
     # print(raw_data_.head())
     # print(raw_data_.groupby('x').mean())
 
@@ -125,7 +125,7 @@ def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
         x_2dset = np.array(raw_data_[Wanted_data['X']])
         y_2dset = np.array(raw_data_[Wanted_data['Y']])
         dataset = np.array(x_2dset), np.array(y_2dset)
-        print(dataset)
+        #print(dataset)
         cal_x_ = fit_2D(dataset, *poptx)
         cal_y_ = fit_2D(dataset, *popty)
 

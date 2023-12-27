@@ -6,6 +6,7 @@ import TestBench_data_processing as tb_dataprocessing
 import matplotlib.ticker as ticker
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 tb_dataprocessing.PlotSettings()
 
@@ -13,24 +14,28 @@ number_interval = 21
 
 step = 1
 max_point = 10
-cal_range = 6
+cal_range = 10
+
+
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
-
+sensitivity = r'$S_{coupling}$'
+sensi_str = sensitivity.strip('$')
+target_freq = '352'
 cal_method = [1, 3, 5]#, '2D-3rd'] # [1, 3, 5, '2D-3rd']
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
 filename = 'BPM01_65MHz_20dBm_2port_01_-10to10_100_20231220_182940.csv'
-file_dir = '../-5_5_dataset/' + Port + 'BPM01_65MHz/' #+ filename # 'PAPER_ONLY_0825/' +
+file_dir = '../-5_5_dataset/' + Port + f'BPM01_{target_freq}MHz/' #+ filename # 'PAPER_ONLY_0825/' +
 file_list = os.listdir(file_dir)
 print(type(file_list))
 # os.chdir('../' + file_dir)
 print(os.getcwd())
 print(file_list)
-time.sleep(3)
+# time.sleep(3)
 
-for file in file_list[1:2]:
+for file in file_list[2:3]:
     print(file)
     file_path = os.path.join(file_dir, file)
     data = pd.read_csv(file_path, index_col=False)
@@ -121,6 +126,7 @@ for file in file_list[1:2]:
     plt.figure(figsize=(10, 6))
     for i, fit in enumerate(cal_method):
         plt.subplot(1, len(cal_method), i+1)
+        plt.grid()
         if fit == 1:
             plt.title("Linear estimation")
         elif fit == 3:
@@ -136,18 +142,23 @@ for file in file_list[1:2]:
         mean_same_x = data.groupby('x').mean()['cal_X']
         mean_same_y = data.groupby('y').mean()['cal_Y']
         
-        plt.plot(x_dummy, y_dummy, c='k',  lw=0.5, ls='-')
         plt.scatter(mean_same_x.index, mean_same_x.values, lw=0.8, marker='^', facecolor='none', edgecolor='b')
         plt.scatter(mean_same_y.index, mean_same_y.values, marker=',', facecolor='none', edgecolors='r')
+        plt.plot(x_dummy, y_dummy, c='k',  lw=0.5, ls='-')
+        plt.legend(['$X_{0}$', '$Y_{0}$'], loc='upper left')
         # plt.title("Linear calibration result")
         plt.xlabel("Wire position [mm]")
-        plt.ylabel("Linear Estimation [mm]")
+        plt.ylabel("Predicted position [mm]")
         plt.xlim([-max_point, max_point])
         plt.ylim([-max_point, max_point])
         plt.gca().set_aspect('equal')
         plt.tight_layout()
+    plt.savefig(f'{target_freq}MHz_fitting_sensitivity.png',
+        format='png',
+        dpi=600,
+    bbox_inches='tight')
     # plt.ylabel("K$_{x, y}$ X DOS ($\Delta/\Sigma$)")
-        plt.grid()
+        # plt.grid()
 
     x_dummy = [np.arange(-max_point, max_point+step, step)] * number_interval
     y_dummy = [i for i in np.arange(-max_point, max_point+step, step) for _ in range(number_interval)]
@@ -157,9 +168,10 @@ for file in file_list[1:2]:
     '''
     2D mapping
     '''
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(12, 4))
     for i, fit in enumerate(cal_method):
         plt.subplot(1, len(cal_method), i+1)
+        plt.suptitle(r'$S_{x=y}$' + f' @ {target_freq} MHz', fontsize=16)
         if fit == 1:
             plt.title("Linear estimation")
         elif fit == 3:
@@ -175,8 +187,8 @@ for file in file_list[1:2]:
 
         data['cal_X'], data['cal_Y'] = data['cal_X'] - cal_offset['cal_X'].values, data['cal_Y'] - cal_offset['cal_Y'].values
         
-        plt.scatter(x_dummy, y_dummy, s=100, marker='.', edgecolor='b')
-        plt.scatter(data['cal_X'], data['cal_Y'], s=50, marker='o', facecolor='none', edgecolors='r')
+        plt.scatter(x_dummy, y_dummy, s=40, marker='.', edgecolor='b')
+        plt.scatter(data['cal_X'], data['cal_Y'], s=30, marker='o', facecolor='none', edgecolors='r')
         # plt.title("Linear calibration result")
         plt.xlabel("X [mm]")
         plt.ylabel("Y [mm]")
@@ -186,9 +198,14 @@ for file in file_list[1:2]:
         plt.tight_layout()
     # plt.ylabel("K$_{x, y}$ X DOS ($\Delta/\Sigma$)")
         plt.grid()
+    #     plt.savefig(f'{target_freq}MHz_{sensitivity.strip('$')}2D polynomial.png',
+    #     format='png',
+    #     dpi=600,
+    # bbox_inches='tight')
         
     # %%
-    fig1 = plt.figure(figsize=(10, 8))
+    fig1 = plt.figure(figsize=(12, 4))
+    fig1.suptitle(f'Calibration results by using {sensitivity}' + f' @ {target_freq} MHz', fontsize=16)
     # fig1.set_tight_layout(True)
     for i, fit in enumerate(cal_method):
         '''
@@ -196,7 +213,7 @@ for file in file_list[1:2]:
         '''
 
         '''
-        2D plance plotting
+        2D color plotting
         '''
         # fig = plt.figure(10+i)
         cal_x, cal_y = tb_dataprocessing.optimized_func(data, Wanted_data, cal_range, fit)
@@ -214,9 +231,13 @@ for file in file_list[1:2]:
         x, y = np.meshgrid(x_values, y_values)    
         error_xx, error_yy = x - cal_XX, y - cal_YY
         # z = abs(error_xx) + abs(error_yy)
-        z = np.sqrt( error_xx **2 + error_yy ** 2) * 10**3
-        ax2 = fig1.add_subplot(2,2,i+1)
-        # fig1.subplots_adjust(wspace=4, hspace=4)
+        z = np.sqrt( error_xx **2 + error_yy ** 2) #* 10**3
+        if '2D-3rd' in cal_method:
+            ax2 = fig1.add_subplot(2,2,i+1, aspect='equal')
+        else:
+            ax2 = fig1.add_subplot(1,3,i+1, aspect='equal')
+        # fig1.subplots_adjust(left=0.7, right=0.9)
+        # plt.subplots_adjust(left=0.1, right=0.8, top=0.9, bottom=0.1)
         if fit == 3:
             ax2.set_title("3rd polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
         elif fit == 1:
@@ -226,21 +247,27 @@ for file in file_list[1:2]:
         elif fit == '2D-3rd':
             ax2.set_title("2D multi-poly fitting", fontsize=14, fontweight='bold', x=0.4)
 
-        cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax*10**3)# , vmin=vmin, vmax=vmax
-        cax, _ = mpl.colorbar.make_axes(ax2)
+        cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
+        divider = make_axes_locatable(ax2)
+        cax = divider.append_axes("right", size="5%", pad=0.1)
+
         cbar = mpl.colorbar.ColorbarBase(cax, cmap=cs.cmap, norm=cs.norm)
         # cbar.set_ticks([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, vmax])
         # cs2 = ax2.contour(cs, levels=cs.levels[::2], colors='black')
-        cs2 = ax2.contour(cs, levels=[100], colors='black')
+        cs2 = ax2.contour(cs, levels=[0.1], colors='black')
         cbar.add_lines(cs2)
         cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
-        cbar.set_label(u'Error [\u03bcm]', rotation=270, labelpad=10)
+        cbar.set_label(u'Error [mm]', rotation=270, labelpad=15)
         ax2.clabel(cs2, fmt='%2.1f', colors='magenta', fontsize=14)
         ax2.set_xlabel('X [mm]')
         ax2.set_ylabel('Y [mm]')
         ax2.set_xlim([-cal_range, cal_range])
         ax2.set_ylim([-cal_range, cal_range])
-
+        plt.tight_layout()
+    plt.savefig(f'{target_freq}MHz_' + 'S_bar(x)' + '_2D_colormap.png',
+        format='png',
+        dpi=600,
+    bbox_inches='tight')
 # %%
 error_dict = {}
 range_values = np.arange(step, cal_range+step, step)
@@ -291,8 +318,8 @@ for i, (fit, error_list) in enumerate(error_dict.items()):
     #     y_value_at_4 = error_list[np.where(np.array(range_values) == 4.0)[0][0]] # Extracting the y-value at x=4
     #     plt.annotate(f"{y_value_at_4:.2f}", (4, y_value_at_4), textcoords="offset points", xytext=(80,-23), color=p_color[i], ha='right', arrowprops=dict(arrowstyle="->", color=p_color[i]))
     
-    plt.axvline(3.0, color='gray', linestyle='--')
-    plt.axvline(4.0, color='gray', linestyle='--')
+    # plt.axvline(3.0, color='gray', linestyle='--')
+    # plt.axvline(4.0, color='gray', linestyle='--')
 plt.axhline(100, color='gray', linestyle='--')
 plt.xlabel('wire movement horizontal plane [mm²]')
 plt.ylabel(u'Average error [\u03bcm]')

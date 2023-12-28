@@ -19,10 +19,10 @@ cal_range = 10
 
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
-sensitivity = r'$S_{coupling}$'
+sensitivity = r'$S_{\bar{x}}$'
 sensi_str = sensitivity.strip('$')
 target_freq = '352'
-cal_method = [1, 3, 5]#, '2D-3rd'] # [1, 3, 5, '2D-3rd']
+cal_method = [1, 3, 5, '2D-3rd'] # [1, 3, 5, '2D-3rd']
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
@@ -82,15 +82,15 @@ for file in file_list[2:3]:
     # plt.subplot(122)
     ax3.scatter(data['x'], data[Wanted_data['X']], label=r'$S_{coupling}$', s=10, c='black')
     # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y', s=10)
-    axins = zoomed_inset_axes(ax3, 2, loc='lower right', axes_kwargs={'fc':'lightgray'})
+    axins = zoomed_inset_axes(ax3, 3, loc='lower right', axes_kwargs={'fc':'lightgray'})
 
     axins.plot(data[data['x'] == data['y']]['x'], data[data['x'] == data['y']][Wanted_data['X']], label=r'$S_{x=y}$', c='g')
     axins.plot(mean_same_x.index, mean_same_x[Wanted_data['X']], label=r'$S_{\bar{x}}$', c='r', linestyle='--')
     axins.plot(median_x.index, median_x[Wanted_data['X']], label=r'$S_{Med(x)}$', c='b', 
     linestyle="dashdot")
-    axins.scatter(data['x'], data[Wanted_data['X']], label=r'$S_{coupling}$', s=10, c='black')
-    axins.set_xlim(7, 10.5)
-    axins.set_ylim(0.5, 0.8)
+    axins.scatter(data['x'], data[Wanted_data['X']], label=r'$S_{coupling}$', s=2, c='black')
+    axins.set_xlim(7.25, 10.5)
+    axins.set_ylim(0.55, 0.78)
     axins.set_xticks([])
     axins.set_yticks([])
     axins.grid()
@@ -204,12 +204,13 @@ for file in file_list[2:3]:
     # bbox_inches='tight')
         
     # %%
-    fig1 = plt.figure(figsize=(12, 4))
-    fig1.suptitle(f'Calibration results by using {sensitivity}' + f' @ {target_freq} MHz', fontsize=16)
+    # fig1 = plt.figure(figsize=(12, 4))
+    fig1 = plt.figure(figsize=(8,7))
+    fig1.suptitle(f'{sensitivity} case' + f' @ {target_freq} MHz', fontsize=16, y=0.92)
     # fig1.set_tight_layout(True)
     for i, fit in enumerate(cal_method):
         '''
-        3D dimension plotting
+        3D dimension plotting position
         '''
 
         '''
@@ -239,13 +240,13 @@ for file in file_list[2:3]:
         # fig1.subplots_adjust(left=0.7, right=0.9)
         # plt.subplots_adjust(left=0.1, right=0.8, top=0.9, bottom=0.1)
         if fit == 3:
-            ax2.set_title("3rd polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
+            ax2.set_title("3rd polynomial fitting", fontsize=14, x=0.5)
         elif fit == 1:
-            ax2.set_title("Linear fitting", fontsize=14, fontweight='bold', x=0.5)
+            ax2.set_title("Linear fitting", fontsize=14, x=0.5)
         elif fit == 5:
-            ax2.set_title("5th polynomial fitting", fontsize=14, fontweight='bold', x=0.4)
+            ax2.set_title("5th polynomial fitting", fontsize=14, x=0.5)
         elif fit == '2D-3rd':
-            ax2.set_title("2D multi-poly fitting", fontsize=14, fontweight='bold', x=0.4)
+            ax2.set_title("2D 3rd-polynomial fitting", fontsize=14, x=0.5)
 
         cs = ax2.contourf(x, y, z, 100, cmap='jet', vmin=vmin, vmax=vmax)# , vmin=vmin, vmax=vmax
         divider = make_axes_locatable(ax2)
@@ -264,7 +265,10 @@ for file in file_list[2:3]:
         ax2.set_xlim([-cal_range, cal_range])
         ax2.set_ylim([-cal_range, cal_range])
         plt.tight_layout()
-    plt.savefig(f'{target_freq}MHz_' + 'S_bar(x)' + '_2D_colormap.png',
+    plt.savefig(f'{target_freq}MHz_'
+                # + sensi_str +
+                + 'S_bar(x)' +
+                '_2D_colormap.png',
         format='png',
         dpi=600,
     bbox_inches='tight')
@@ -310,18 +314,19 @@ for i, (fit, error_list) in enumerate(error_dict.items()):
     #     y_value_at_3 = error_list[np.where(np.array(range_values) == 3.0)[0][0]] # Extracting the y-value at x=3
     #     plt.annotate(f"{y_value_at_3:.2f}", (3, y_value_at_3), textcoords="offset points", xytext=(-2,-40), color=p_color[i], ha='right', arrowprops=dict(arrowstyle="->", color=p_color[i]))
     
-    #     # Annotation for x=4
-    #     y_value_at_3_5 = error_list[np.where(np.array(range_values) == 3.5)[0][0]] # Extracting the y-value at x=4
-    #     plt.annotate(f"{y_value_at_3_5:.2f}", (3.5, y_value_at_3_5), textcoords="offset points", xytext=(14,10), color=p_color[i], ha='right')
+    # # Annotation for x=4
+    # y_value_at_3_5 = error_list[np.where(np.array(range_values) == 3.5)[0][0]] # Extracting the y-value at x=4
+    # plt.annotate(f"{y_value_at_3_5:.2f}", (3.5, y_value_at_3_5), textcoords="offset points", xytext=(14,10), color=p_color[i], ha='right')
         
-    #     # Annotation for x=4
-    #     y_value_at_4 = error_list[np.where(np.array(range_values) == 4.0)[0][0]] # Extracting the y-value at x=4
-    #     plt.annotate(f"{y_value_at_4:.2f}", (4, y_value_at_4), textcoords="offset points", xytext=(80,-23), color=p_color[i], ha='right', arrowprops=dict(arrowstyle="->", color=p_color[i]))
+    # Annotation for x=4
+    # y_value_at_5 = error_list[np.where(np.array(range_values) == 5.0)[0][0]] # Extracting the y-value at x=4
+    # plt.annotate(f"{y_value_at_5:.2f}", (5, y_value_at_5), textcoords="offset points", xytext=(80,-23), color=p_color[i], ha='right', arrowprops=dict(arrowstyle="->", color=p_color[i]))
     
     # plt.axvline(3.0, color='gray', linestyle='--')
     # plt.axvline(4.0, color='gray', linestyle='--')
+plt.title(f'{sensitivity} case' + f' @ {target_freq} MHz')
 plt.axhline(100, color='gray', linestyle='--')
-plt.xlabel('wire movement horizontal plane [mm²]')
+plt.xlabel('wire movement range [mm]')
 plt.ylabel(u'Average error [\u03bcm]')
 # plt.ylabel(u"\u03bcs")
 plt.xticks(range_values)
@@ -329,6 +334,13 @@ plt.xticks(range_values)
 # plt.yticks(y_ticks)
 # plt.ylim(0, 0.3)
 plt.legend()
+plt.savefig(f'{target_freq}MHz_'
+                # + sensi_str +
+                + 'S_bar(x)' +
+                '_Error_response.png',
+        format='png',
+        dpi=600,
+    bbox_inches='tight')
 plt.show()
 
 

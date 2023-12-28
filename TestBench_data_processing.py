@@ -7,7 +7,7 @@ def PlotSettings():
     plt.rcParams['axes.labelsize'] = 16
     # plt.rcParams["axes.labelweight"] = "bold"
     # plt.rcParams['font.weight'] = 'bold'
-    plt.rcParams['font.size'] = 12
+    plt.rcParams['font.size'] = 16
     plt.rcParams['image.cmap'] = 'jet'
     plt.rcParams['axes.titlesize'] = 16
     # plt.rcParams["axes.titleweight"] = "bold"
@@ -65,7 +65,7 @@ def rms(series):
     return np.sqrt(np.mean(series**2))
 
 def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
-    ver = 2
+    ver = 0
     # print(raw_data_.head())
     # print(raw_data_.groupby('x').mean())
 

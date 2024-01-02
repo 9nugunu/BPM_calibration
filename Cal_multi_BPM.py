@@ -21,8 +21,13 @@ Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 sensitivity = r'$S_{\bar{x}}$'
 sensi_str = sensitivity.strip('$')
+
+if sensitivity == r'$S_{\bar{x}}$':
+    sensi_str = 'S_bar_x'
+    
+
 target_freq = '352'
-cal_method = [1, 3, 5, '2D-3rd'] # [1, 3, 5, '2D-3rd']
+cal_method = [1, 3, 5]#, '2D-3rd'] # [1, 3, 5, '2D-3rd']
 
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
@@ -204,8 +209,9 @@ for file in file_list[2:3]:
     # bbox_inches='tight')
         
     # %%
-    # fig1 = plt.figure(figsize=(12, 4))
-    fig1 = plt.figure(figsize=(8,7))
+    fig1 = plt.figure(figsize=(12, 4))
+    # fig1 = plt.figure(figsize=(16, 4))
+    # fig1 = plt.figure(figsize=(8,7))
     fig1.suptitle(f'{sensitivity} case' + f' @ {target_freq} MHz', fontsize=16, y=0.92)
     # fig1.set_tight_layout(True)
     for i, fit in enumerate(cal_method):
@@ -234,7 +240,7 @@ for file in file_list[2:3]:
         # z = abs(error_xx) + abs(error_yy)
         z = np.sqrt( error_xx **2 + error_yy ** 2) #* 10**3
         if '2D-3rd' in cal_method:
-            ax2 = fig1.add_subplot(2,2,i+1, aspect='equal')
+            ax2 = fig1.add_subplot(1,4,i+1, aspect='equal')
         else:
             ax2 = fig1.add_subplot(1,3,i+1, aspect='equal')
         # fig1.subplots_adjust(left=0.7, right=0.9)
@@ -266,8 +272,7 @@ for file in file_list[2:3]:
         ax2.set_ylim([-cal_range, cal_range])
         plt.tight_layout()
     plt.savefig(f'{target_freq}MHz_'
-                # + sensi_str +
-                + 'S_bar(x)' +
+                + sensi_str +
                 '_2D_colormap.png',
         format='png',
         dpi=600,
@@ -335,8 +340,7 @@ plt.xticks(range_values)
 # plt.ylim(0, 0.3)
 plt.legend()
 plt.savefig(f'{target_freq}MHz_'
-                # + sensi_str +
-                + 'S_bar(x)' +
+                + sensi_str +
                 '_Error_response.png',
         format='png',
         dpi=600,

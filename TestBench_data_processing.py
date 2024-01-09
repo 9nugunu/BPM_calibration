@@ -87,144 +87,148 @@ def fit_2D(xy, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p):
         + p
     )
 
+class Optimizer:
+    '''
+    BPM Raw DOS 데이터를 받아 서로다른 sensitivity 정의에 따른 다항함수 피팅 결과계산 클래스
+    '''
+    def __init__(self):
+        self.fit_ver = 0
 
-def rms(series):
-    print(series)
-    return np.sqrt(np.mean(series**2))
+    def reset_ver(self):
+        self.fit_ver = 0
 
+    def set_ver(self, new_ver):
+        self.fit_ver = new_ver
+        print(f"Current fit_ver: {self.fit_ver}")
 
-def optimized_func(raw_data_, Wanted_data, cal_range_, fit_num):
-    ver = 2
-    # print(raw_data_.head())
-    # print(raw_data_.groupby('x').mean())
+    def optimized_func(self, raw_data_, Wanted_data, cal_range_, fit_num):
+        # print(raw_data_.head())
+        # print(raw_data_.groupby('x').mean())
 
-    if ver == 0:
-        mean_x = raw_data_.groupby("x").mean()
-        mean_y = raw_data_.groupby("y").mean()
+        '''
+        Sensitivity 변수(fit_ver)에 따른 fitting data 선택
+        '''
+        if self.fit_ver == 0:
+            mean_x = raw_data_.groupby("x").mean()
+            mean_y = raw_data_.groupby("y").mean()
 
-        xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data["X"]]
-        ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data["Y"]]
+            xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data["X"]]
+            ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data["Y"]]
 
-    elif ver == 1:
-        filtered_data = raw_data_[raw_data_["x"] == raw_data_["y"]]
-        xdata_fit = filtered_data[abs(filtered_data["x"]) <= cal_range_][
-            Wanted_data["X"]
-        ]
-        ydata_fit = filtered_data[abs(filtered_data["y"]) <= cal_range_][
-            Wanted_data["Y"]
-        ]
-        xdata_fit.index = filtered_data[abs(filtered_data["x"]) <= cal_range_]["x"]
-        ydata_fit.index = filtered_data[abs(filtered_data["y"]) <= cal_range_]["y"]
+        elif self.fit_ver == 1:
+            filtered_data = raw_data_[raw_data_["x"] == raw_data_["y"]]
+            xdata_fit = filtered_data[abs(filtered_data["x"]) <= cal_range_][
+                Wanted_data["X"]
+            ]
+            ydata_fit = filtered_data[abs(filtered_data["y"]) <= cal_range_][
+                Wanted_data["Y"]
+            ]
+            xdata_fit.index = filtered_data[abs(filtered_data["x"]) <= cal_range_]["x"]
+            ydata_fit.index = filtered_data[abs(filtered_data["y"]) <= cal_range_]["y"]
 
-    elif ver == 2:
-        filtered_data = raw_data_
-        xdata_fit = filtered_data[abs(filtered_data["x"]) <= cal_range_][
-            Wanted_data["X"]
-        ]
-        ydata_fit = filtered_data[abs(filtered_data["y"]) <= cal_range_][
-            Wanted_data["Y"]
-        ]
-        xdata_fit.index = filtered_data[abs(filtered_data["x"]) <= cal_range_]["x"]
-        ydata_fit.index = filtered_data[abs(filtered_data["y"]) <= cal_range_]["y"]
+        elif self.fit_ver == 2:
+            filtered_data = raw_data_
+            xdata_fit = filtered_data[abs(filtered_data["x"]) <= cal_range_][
+                Wanted_data["X"]
+            ]
+            ydata_fit = filtered_data[abs(filtered_data["y"]) <= cal_range_][
+                Wanted_data["Y"]
+            ]
+            xdata_fit.index = filtered_data[abs(filtered_data["x"]) <= cal_range_]["x"]
+            ydata_fit.index = filtered_data[abs(filtered_data["y"]) <= cal_range_]["y"]
 
-    elif ver == 3:
-        mean_x = raw_data_.groupby("x").agg(np.median)
-        mean_y = raw_data_.groupby("y").agg(np.median)
+        elif self.fit_ver == 3:
+            mean_x = raw_data_.groupby("x").agg(np.median)
+            mean_y = raw_data_.groupby("y").agg(np.median)
 
-        xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data["X"]]
-        ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data["Y"]]
+            xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data["X"]]
+            ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data["Y"]]
 
-    # raw_data_.groupby('x').mean()
-    # raw_data_.groupby('y').mean()
+        if fit_num != "2D-3rd":
+            poptx = BPM_curve_fit(xdata_fit.values, xdata_fit.index, fit_num)
+            popty = BPM_curve_fit(ydata_fit.values, ydata_fit.index, fit_num)
+        else:
+            poptx = BPM_curve_fit(
+                (xdata_fit.values, ydata_fit.values), xdata_fit.index, fit_num
+            )
+            popty = BPM_curve_fit(
+                (xdata_fit.values, ydata_fit.values), ydata_fit.index, fit_num
+            )
 
-    # xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data['X']]
-    # ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data['Y']]
+        '''
+        fitting order n 에 따른 다항함수 피팅
+        '''
+        if fit_num == 1:
+            cal_x_ = fit_1st(np.array(raw_data_[Wanted_data["X"]]), *poptx)
+            cal_y_ = fit_1st(np.array(raw_data_[Wanted_data["Y"]]), *popty)
+        elif fit_num == 3:
+            cal_x_ = fit_3rd(np.array(raw_data_[Wanted_data["X"]]), *poptx)
+            cal_y_ = fit_3rd(np.array(raw_data_[Wanted_data["Y"]]), *popty)
+        elif fit_num == 5:
+            cal_x_ = fit_5th(np.array(raw_data_[Wanted_data["X"]]), *poptx)
+            cal_y_ = fit_5th(np.array(raw_data_[Wanted_data["Y"]]), *popty)
+        elif fit_num == "2D-3rd":
+            # print(Wanted_data['X'])
+            # xy_values = raw_data_[Wanted_data['X', 'Y']]
+            x_2dset = np.array(raw_data_[Wanted_data["X"]])
+            y_2dset = np.array(raw_data_[Wanted_data["Y"]])
+            dataset = np.array(x_2dset), np.array(y_2dset)
+            # print(dataset)
+            cal_x_ = fit_2D(dataset, *poptx)
+            cal_y_ = fit_2D(dataset, *popty)
 
-    if fit_num != "2D-3rd":
-        poptx = BPM_curve_fit(xdata_fit.values, xdata_fit.index, fit_num)
-        popty = BPM_curve_fit(ydata_fit.values, ydata_fit.index, fit_num)
-    else:
-        poptx = BPM_curve_fit(
-            (xdata_fit.values, ydata_fit.values), xdata_fit.index, fit_num
-        )
-        popty = BPM_curve_fit(
-            (xdata_fit.values, ydata_fit.values), ydata_fit.index, fit_num
-        )
+        return cal_x_, cal_y_
 
-    if fit_num == 1:
-        cal_x_ = fit_1st(np.array(raw_data_[Wanted_data["X"]]), *poptx)
-        cal_y_ = fit_1st(np.array(raw_data_[Wanted_data["Y"]]), *popty)
-    elif fit_num == 3:
-        cal_x_ = fit_3rd(np.array(raw_data_[Wanted_data["X"]]), *poptx)
-        cal_y_ = fit_3rd(np.array(raw_data_[Wanted_data["Y"]]), *popty)
-    elif fit_num == 5:
-        cal_x_ = fit_5th(np.array(raw_data_[Wanted_data["X"]]), *poptx)
-        cal_y_ = fit_5th(np.array(raw_data_[Wanted_data["Y"]]), *popty)
-    elif fit_num == "2D-3rd":
-        # print(Wanted_data['X'])
-        # xy_values = raw_data_[Wanted_data['X', 'Y']]
-        x_2dset = np.array(raw_data_[Wanted_data["X"]])
-        y_2dset = np.array(raw_data_[Wanted_data["Y"]])
-        dataset = np.array(x_2dset), np.array(y_2dset)
-        # print(dataset)
-        cal_x_ = fit_2D(dataset, *poptx)
-        cal_y_ = fit_2D(dataset, *popty)
+    def ErrorWrtRange(self, data_, Wanted_data_, cal_range_, step_, error_dict_, errors_all_, cal_method_):
+        # data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
 
-    return cal_x_, cal_y_
+        # error_dict = {}
+        range_values = np.arange(step_, cal_range_ + step_, step_)
+        # errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
+        for fit in cal_method_:
+            fit_num = fit
+            # print("="*300)
+            cal_x_, cal_y_ = self.optimized_func(data_, Wanted_data_, cal_range_, fit_num)
+            # print("*"*300)
+            data_["cal_X"], data_["cal_Y"] = cal_x_, cal_y_
 
+            cal_offset = data_[(data_["x"] == 0) & (data_["y"] == 0)][["cal_X", "cal_Y"]]
 
-def ErrorWrtRange(
-    data_, Wanted_data_, cal_range_, step_, error_dict_, errors_all_, cal_method_
-):
-    # data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
+            data_["cal_X"], data_["cal_Y"] = (
+                data_["cal_X"] - cal_offset["cal_X"].values,
+                data_["cal_Y"] - cal_offset["cal_Y"].values,
+            )
 
-    # error_dict = {}
-    range_values = np.arange(step_, cal_range_ + step_, step_)
-    # errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
-    for fit in cal_method_:
-        fit_num = fit
-        # print("="*300)
-        cal_x_, cal_y_ = optimized_func(data_, Wanted_data_, cal_range_, fit_num)
-        # print("*"*300)
-        data_["cal_X"], data_["cal_Y"] = cal_x_, cal_y_
+            error_list = []
+            for value in range_values:
+                mask = (np.abs(data_["x"]) <= value) & (np.abs(data_["y"]) <= value)
+                # mask_y = (np.abs(Wanted_data['y']) <= value)
 
-        cal_offset = data_[(data_["x"] == 0) & (data_["y"] == 0)][["cal_X", "cal_Y"]]
+                # mask = np.abs(Wanted_data) <= value
+                filtered_data = data_[mask]
+                filtered_Wanted_data_x = filtered_data["x"]
+                filtered_cal_x = filtered_data["cal_X"]
+                # print(filtered_cal_x)
 
-        data_["cal_X"], data_["cal_Y"] = (
-            data_["cal_X"] - cal_offset["cal_X"].values,
-            data_["cal_Y"] - cal_offset["cal_Y"].values,
-        )
+                # masky = ((np.abs(Wanted_data['x']) <= value))
+                # filtered_Wanted_data_y = data_['y'][mask]
+                # filtered_cal_y = data_['cal_Y'][mask]
+                filtered_Wanted_data_y = filtered_data["y"]
+                filtered_cal_y = filtered_data["cal_Y"]
 
-        error_list = []
-        for value in range_values:
-            mask = (np.abs(data_["x"]) <= value) & (np.abs(data_["y"]) <= value)
-            # mask_y = (np.abs(Wanted_data['y']) <= value)
+                error_x = filtered_Wanted_data_x - filtered_cal_x
+                error_y = filtered_Wanted_data_y - filtered_cal_y
+                error_z = np.mean(np.sqrt(error_x**2 + error_y**2))
+                # print(error_z)
+                error_list.append(error_z * 10**3)
+                # plt.scatter(filtered_cal_x, filtered_cal_y, label=f'n = {fit}')
+                # plt.show()
+                # if fit not in all_errors:
+                #     all_errors[fit] = []
+                # print(error_list)
+            # print(f"fit: {fit}, 5th_error_list: {error_list[5]} **************************************")
+            errors_all_[fit].append(error_list)
 
-            # mask = np.abs(Wanted_data) <= value
-            filtered_data = data_[mask]
-            filtered_Wanted_data_x = filtered_data["x"]
-            filtered_cal_x = filtered_data["cal_X"]
-            # print(filtered_cal_x)
+            error_dict_[fit] = error_list
 
-            # masky = ((np.abs(Wanted_data['x']) <= value))
-            # filtered_Wanted_data_y = data_['y'][mask]
-            # filtered_cal_y = data_['cal_Y'][mask]
-            filtered_Wanted_data_y = filtered_data["y"]
-            filtered_cal_y = filtered_data["cal_Y"]
-
-            error_x = filtered_Wanted_data_x - filtered_cal_x
-            error_y = filtered_Wanted_data_y - filtered_cal_y
-            error_z = np.mean(np.sqrt(error_x**2 + error_y**2))
-            # print(error_z)
-            error_list.append(error_z * 10**3)
-            # plt.scatter(filtered_cal_x, filtered_cal_y, label=f'n = {fit}')
-            # plt.show()
-            # if fit not in all_errors:
-            #     all_errors[fit] = []
-            # print(error_list)
-        # print(f"fit: {fit}, 5th_error_list: {error_list[5]} **************************************")
-        errors_all_[fit].append(error_list)
-
-        error_dict_[fit] = error_list
-
-    return error_dict_, errors_all_
+        return error_dict_, errors_all_

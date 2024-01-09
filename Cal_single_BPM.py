@@ -17,7 +17,7 @@ max_point = 10
 cal_range = 10
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
-cal_method = [1, 3, 5]#, '2D-3rd'] # [1, 3, 5, '2D-3rd']
+cal_method = [1, 3, 5, '2D-3rd'] # [1, 3, 5, '2D-3rd']
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
 # filename = 'BPM01_352MHz_14dBm_2port_01_1th_5020231218_205303.csv'
@@ -215,8 +215,12 @@ for i, fit in enumerate(cal_method):
 start_ = 1
 file_ = 1
 error_dict = {}
-range_values = np.arange(step, max_point+step, step)
-errors_all = {1: [], 3: [], 5: [], 7: [], 9: []}
+range_values = np.arange(step, cal_range + step, step)
+# errors_all = {1: [], 3:[], 5:[], '2D-3rd': []}
+errors_all = dict.fromkeys(cal_method, [])
+print(errors_all)
+# os.exit()
+errors_std, errors_se, errors_mean, errors_rms = {}, {}, {}, {}
 
 # file_path = os.path.join(file_dir, filename)
 data = pd.read_csv(filename, index_col=False)
@@ -226,6 +230,27 @@ data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max
 error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(
         data, Wanted_data, cal_range, step, error_dict, errors_all, cal_method
     )
+plt.figure()
+markers = ["^", "s", "D", ".", "<"]
+p_color = ["r", "b", "magenta", "g", "grey"]
+for i, (fit, error_list) in enumerate(error_dict.items()):
+    plt.plot(
+        range_values,
+        error_list,
+        label=f"n = {fit}",
+        marker=markers[2 - i],
+        c=p_color[i],
+    )
+# plt.title(f"{sensitivity} case" + f" @ {target_freq} MHz")
+plt.axhline(100, color="gray", linestyle="--")
+plt.xlabel("wire movement range [mm]")
+plt.ylabel("Average error [\u03bcm]")
+# plt.ylabel(u"\u03bcs")
+plt.xticks(range_values)
+# y_ticks = np.arange(0, 201, 25)
+# plt.yticks(y_ticks)
+# plt.ylim(0, 0.3)
+plt.legend()
 
 plt.show()
 

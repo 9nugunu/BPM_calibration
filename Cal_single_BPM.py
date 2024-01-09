@@ -14,14 +14,14 @@ number_interval = 21
 
 step = 1
 max_point = 10
-cal_range = 6
+cal_range = 10
 Port = '2port/'
 Wanted_data = {'X':' X(A)', 'Y':' Y(A)'}
 cal_method = [1, 3, 5]#, '2D-3rd'] # [1, 3, 5, '2D-3rd']
 
 # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
 # filename = 'BPM01_352MHz_14dBm_2port_01_1th_5020231218_205303.csv'
-filename = 'BPM01_200MHz_20dBm_2port_01_-10to10_100_20231220_152537.csv'
+filename = 'BPM01_352MHz_10dBm_2port_01_-10to10_100_20240109_101030.csv'
 file_dir = './-5_5_dataset/' + Port #+ 'FOR_PAPER/' #+ filename # 'PAPER_ONLY_0825/' +
 os.chdir('../' + file_dir)
 print(os.getcwd())
@@ -35,15 +35,17 @@ data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max
 # print(data.head())
 
 plt.figure(1)
-plt.scatter(data[Wanted_data['X']], data[Wanted_data['Y']])
-# plt.yticks([0.4, 0.3, 0.2, 0.1, 0.0, -0.1])
-plt.title('measured raw data')
+plt.scatter(data[Wanted_data['X']], data[Wanted_data['Y']], s=40, marker=".", edgecolor="b")
+# plt.xticks([-0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75])
+# plt.yticks([-0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4])
+plt.title(r'Measured $\Delta/\Sigma$ data from the low induced signal')
 plt.xlabel('X raw data')
 plt.ylabel('Y raw data')
-# plt.savefig(file_dir+'RAW.png',
-#     format='png',
-#     dpi=1000,
-# bbox_inches='tight')
+plt.tight_layout()
+plt.savefig('low-dynamic-raw.png',#file_dir+'RAW.png',
+    format='png',
+    dpi=1000,
+bbox_inches='tight')
 # plt.show()
 
 cal_offset = data[(data['x'] == 0) & (data['y'] == 0)][[Wanted_data['X'], Wanted_data['Y']]]
@@ -221,9 +223,11 @@ data = pd.read_csv(filename, index_col=False)
 
 data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
 data['x'], data['y'] = tb_dataprocessing.add_col_axis(number_interval, step, max_point)
-error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(data, Wanted_data, cal_range, step, error_dict, errors_all)
-plt.show()
+error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(
+        data, Wanted_data, cal_range, step, error_dict, errors_all, cal_method
+    )
 
+plt.show()
 
 '''
     3D dimension plotting

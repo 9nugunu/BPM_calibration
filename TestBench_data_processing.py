@@ -35,9 +35,9 @@ def BPM_curve_fit(x, target, fit_num):
     # print(FormOfpoly)
     if fit_num == 1:
         popt, pcov = curve_fit(fit_1st, x, target)
-        print("==" * 100)
-        print(*popt)
-        print("==" * 100)
+        # print("==" * 100)
+        # print(*popt)
+        # print("==" * 100)
     elif fit_num == 3:
         popt, pcov = curve_fit(fit_3rd, x, target)
     elif fit_num == 5:
@@ -47,52 +47,39 @@ def BPM_curve_fit(x, target, fit_num):
     return popt
 
 
-def fit_1st(x, a, b):  # , c, d, e, f, e, f, g, h, i, j
-    return a * x + b
+def fit_1st(x, a):  # , c, d, e, f, e, f, g, h, i, j
+    return a * x
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
     # return a*x**7 + b*x**6 + c*x**5 + d*x**4 + e*x**3 + f*x**2 + g*x + h
     # return a*x**5 + b*x**4 + c*x**3 + d*x**2 + e*x + f
     # return a*x**3 + b*x**2 + c*x + d
 
 
-def fit_3rd(x, a, b, c, d):
-    return a * x**3 + b * x**2 + c * x + d
+def fit_3rd(x, a, b, c):
+    return a * x**3 + b * x**2 + c * x
     # return a*x**3 + c*x + d
 
 
-def fit_5th(x, a, b, c, d, e, f):
+def fit_5th(x, a, b, c, d, e):
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
-    return a * x**5 + b * x**4 + c * x**3 + d * x**2 + e * x + f
+    return a * x**5 + b * x**4 + c * x**3 + d * x**2 + e * x
 
 
-def fit_2D(xy, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p):
+def fit_2D(xy, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o):
     x, y = xy
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
-    return (
-        a * x**3 * y**3
-        + b * x**2 * y**3
-        + c * x * y**3
-        + d * y**3
-        + e * x**3 * y**2
-        + f * x**2 * y**2
-        + g * x * y**1
-        + h * y**1
-        + i * x**3 * y**1
-        + j * x**2 * y**1
-        + k * x * y**1
-        + l * y**1
-        + m * x**3
-        + n * x**2
-        + o * x
-        + p
-    )
+    return a * x**3 * y**3 + b * x**2 * y**3 + c * x * y**3 + d * y**3 + e * x**3 * y**2 + f * x**2 * y**2 + g * x * y**1 + h * y**1 + i * x**3 * y**1 + j * x**2 * y**1 + k * x * y**1 + l * y**1 + m * x**3 + n * x**2 + o * x
 
 class Optimizer:
-    '''
-    BPM Raw DOS 데이터를 받아 서로다른 sensitivity 정의에 따른 다항함수 피팅 결과계산 클래스
-    '''
+    """
+    BPM Raw DOS 데이터를 받아 서로다른 sensitivity 정의에 따른
+    다항함수 고차항 피팅을 수행하는 클래스
+    """
+
     def __init__(self):
         self.fit_ver = 0
+        # self.cal_x_ = 0
+        # self.cal_y_ = 0
 
     def reset_ver(self):
         self.fit_ver = 0
@@ -104,10 +91,11 @@ class Optimizer:
     def optimized_func(self, raw_data_, Wanted_data, cal_range_, fit_num):
         # print(raw_data_.head())
         # print(raw_data_.groupby('x').mean())
-
-        '''
+        # cal_x_= None
+        # cal_y_= None
+        """
         Sensitivity 변수(fit_ver)에 따른 fitting data 선택
-        '''
+        """
         if self.fit_ver == 0:
             mean_x = raw_data_.groupby("x").mean()
             mean_y = raw_data_.groupby("y").mean()
@@ -144,6 +132,18 @@ class Optimizer:
             xdata_fit = mean_x[abs(mean_x.index) <= cal_range_][Wanted_data["X"]]
             ydata_fit = mean_y[abs(mean_y.index) <= cal_range_][Wanted_data["Y"]]
 
+        elif self.fit_ver == 4:
+            filtered_data_x = raw_data_[raw_data_["y"] == 0]
+            filtered_data_y = raw_data_[raw_data_["x"] == 0]
+            xdata_fit = filtered_data_x[abs(filtered_data_x["x"]) <= cal_range_][
+                Wanted_data["X"]
+            ]
+            ydata_fit = filtered_data_y[abs(filtered_data_y["y"]) <= cal_range_][
+                Wanted_data["Y"]
+            ]
+            xdata_fit.index = filtered_data_x[abs(filtered_data_x["x"]) <= cal_range_]["x"]
+            ydata_fit.index = filtered_data_y[abs(filtered_data_y["y"]) <= cal_range_]["y"]
+
         if fit_num != "2D-3rd":
             poptx = BPM_curve_fit(xdata_fit.values, xdata_fit.index, fit_num)
             popty = BPM_curve_fit(ydata_fit.values, ydata_fit.index, fit_num)
@@ -155,9 +155,9 @@ class Optimizer:
                 (xdata_fit.values, ydata_fit.values), ydata_fit.index, fit_num
             )
 
-        '''
+        """
         fitting order n 에 따른 다항함수 피팅
-        '''
+        """
         if fit_num == 1:
             cal_x_ = fit_1st(np.array(raw_data_[Wanted_data["X"]]), *poptx)
             cal_y_ = fit_1st(np.array(raw_data_[Wanted_data["Y"]]), *popty)
@@ -170,6 +170,7 @@ class Optimizer:
         elif fit_num == "2D-3rd":
             # print(Wanted_data['X'])
             # xy_values = raw_data_[Wanted_data['X', 'Y']]
+            # print("+"*300)
             x_2dset = np.array(raw_data_[Wanted_data["X"]])
             y_2dset = np.array(raw_data_[Wanted_data["Y"]])
             dataset = np.array(x_2dset), np.array(y_2dset)
@@ -179,7 +180,16 @@ class Optimizer:
 
         return cal_x_, cal_y_
 
-    def ErrorWrtRange(self, data_, Wanted_data_, cal_range_, step_, error_dict_, errors_all_, cal_method_):
+    def ErrorWrtRange(
+        self,
+        data_,
+        Wanted_data_,
+        cal_range_,
+        step_,
+        error_dict_,
+        errors_all_,
+        cal_method_,
+    ):
         # data_.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch'], axis=1, inplace=True)
 
         # error_dict = {}
@@ -187,12 +197,17 @@ class Optimizer:
         # errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
         for fit in cal_method_:
             fit_num = fit
-            # print("="*300)
-            cal_x_, cal_y_ = self.optimized_func(data_, Wanted_data_, cal_range_, fit_num)
+            print("=" * 300)
+            # for i in range_values:
+            cal_x_, cal_y_ = self.optimized_func(
+                data_, Wanted_data_, cal_range_, fit_num
+            )
             # print("*"*300)
             data_["cal_X"], data_["cal_Y"] = cal_x_, cal_y_
-
-            cal_offset = data_[(data_["x"] == 0) & (data_["y"] == 0)][["cal_X", "cal_Y"]]
+            print(data_)
+            cal_offset = data_[(data_["x"] == 0) & (data_["y"] == 0)][
+                ["cal_X", "cal_Y"]
+            ]
 
             data_["cal_X"], data_["cal_Y"] = (
                 data_["cal_X"] - cal_offset["cal_X"].values,

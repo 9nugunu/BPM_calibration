@@ -19,56 +19,91 @@ cal_range = 10
 
 Port = "2port/"
 Wanted_data = {"X": " X(A)", "Y": " Y(A)"}
-sensitivity = r"$S_{\bar{x}}$"
-sensi_str = sensitivity.strip("$")
-
-if sensitivity == r"$S_{\bar{x}}$":
-    sensi_str = "S_bar_x"
-
-if sensitivity == r"$S_{coupling}$":
-    cal_method = [1, 3, 5, "2D-3rd"]  # [1, 3, 5, '2D-3rd']
-else:
-    cal_method = [1, 3, 5]  # [1, 3, 5, '2D-3rd']
-
-
 target_freq = "352"
+optimizer = tb_dataprocessing.Optimizer()
 
+sensitivities = {r"$S_{x=y}$": 1,r"$S_{\bar{x}}$": 0, r"$S_{on_axis}$": 4, r"$S_{standard}$": 2}
+# sensitivities = {r"$S_{onaxis}$": 4}
+for sensitivity, fit_ver in sensitivities.items():
+    data = pd.DataFrame()
+    optimizer.set_ver(fit_ver)
+    sensi_str = sensitivity.strip("$")
+    if sensitivity == r"$S_{\bar{x}}$":
+        sensi_str = "S_bar_x"
 
-# filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
-filename = "BPM01_65MHz_20dBm_2port_01_-10to10_100_20231220_182940.csv"
-file_dir = (
-    "../-5_5_dataset/" + Port + f"BPM01_{target_freq}MHz/"
-)  # + filename # 'PAPER_ONLY_0825/' +
-file_list = os.listdir(file_dir)
-print(type(file_list))
-# os.chdir('../' + file_dir)
-print(os.getcwd())
-print(file_list)
-# time.sleep(3)
+    if sensitivity == r"$S_{standard}$":
+        cal_method = [1, 3, 5, "2D-3rd"]  # [1, 3, 5, '2D-3rd']
+    else:
+        cal_method = [1, 3, 5]  # [1, 3, 5, '2D-3rd']
 
-for file in file_list[2:3]:
-    print(file)
-    file_path = os.path.join(file_dir, file)
-    data = pd.read_csv(file_path, index_col=False)
+    # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
+    filename = "BPM01_352MHz_8dBm_2port_01_-10to10_100_20240109_201518.csv"
+    file_dir = (
+        "../-5_5_dataset/" + Port + f"BPM01_{target_freq}MHz_variAmp/"
+    )  # + filename # 'PAPER_ONLY_0825/' +
+    file_list = os.listdir(file_dir)
+    print(type(file_list))
+    # os.chdir('../' + file_dir)
+    print(os.getcwd())
+    print(file_list)
+    # time.sleep(3)
 
-    # data.drop([' Time', ' Type', ' 1Ch', ' 2Ch',  ' 3Ch', ' 4Ch', ' X(A)', ' X(B)', ' Y(A)', ' Y(B)'], axis=1, inplace=True)
-    data.drop([" Time", " Type", " 1Ch", " 2Ch", " 3Ch", " 4Ch"], axis=1, inplace=True)
-    data["x"], data["y"] = tb_dataprocessing.add_col_axis(
-        number_interval, step, max_point
-    )
+    # cal_offset = data[(data["x"] == 0) & (data["y"] == 0)][["cal_X", "cal_Y"]]
+    """
+    n개 데이터 평균 → 하나의 데이터 프레임
+    """
+    for i in file_list:
+        data_path = os.path.join(file_dir, i)
+        raw_data = pd.read_csv(data_path, index_col=False)
 
-    # print(data.head())
+        raw_data.drop(
+            [" Time", " Type", " 1Ch", " 2Ch", " 3Ch", " 4Ch"], axis=1, inplace=True
+        )
+        raw_data["x"], raw_data["y"] = tb_dataprocessing.add_col_axis(
+            number_interval, step, max_point
+        )
+
+        # plt.plot[(raw_data["x"] == 0) & (raw_data["y"] == 0)][["cal_X", "cal_Y"]]
+        if data.empty:
+            data = raw_data[[Wanted_data["X"], Wanted_data["Y"], "x", "y"]].copy()
+        else:
+            data += raw_data[[Wanted_data["X"], Wanted_data["Y"], "x", "y"]]
+
+    data = data / len(file_list)
+    data_origin = data
+    plt.show()
+    # for file in file_list[4:5]:
+    # print(file)
+    # file = "BPM01_352MHz_8dBm_2port_01_-10to10_100_20240109_132438.csv"
+    # file_path = os.path.join(file_dir, file)
+    # data = pd.read_csv(file_path, index_col=False)
+    # data.drop(
+    #     [" Time", " Type", " 1Ch", " 2Ch", " 3Ch", " 4Ch"], axis=1, inplace=True
+    # )
+    # data["x"], data["y"] = tb_dataprocessing.add_col_axis(
+    #     number_interval, step, max_point
+    # )
 
     plt.figure(1)
-    plt.scatter(data[Wanted_data["X"]], data[Wanted_data["Y"]])
+    plt.grid()
+    plt.scatter(
+        data[Wanted_data["X"]], data[Wanted_data["Y"]], s=40, marker=".", edgecolor="b"
+    )
     # plt.yticks([0.4, 0.3, 0.2, 0.1, 0.0, -0.1])
     plt.title("measured raw data")
     plt.xlabel("X raw data")
     plt.ylabel("Y raw data")
+    
+    # plt.show()
+
+    """
+    01/11 기준 그림 저장경로 수정 필요
+    """
     # plt.savefig(file_dir+'RAW.png',
     #     format='png',
     #     dpi=1000,
     # bbox_inches='tight')
+
     # plt.show()
 
     cal_offset = data[(data["x"] == 0) & (data["y"] == 0)][
@@ -88,7 +123,7 @@ for file in file_list[2:3]:
     fig3, ax3 = plt.subplots()
 
     # plt.subplot(111)
-    ax3.set_title("Four different sensivitiy curve")
+    ax3.set_title("Three different sensivitiy curve")
     ax3.plot(
         data[data["x"] == data["y"]]["x"],
         data[data["x"] == data["y"]][Wanted_data["X"]],
@@ -185,10 +220,9 @@ for file in file_list[2:3]:
             plt.title("5th-order polynomial")
         elif fit == "2D-3rd":
             plt.title("2D polynomial")
-        cal_x, cal_y = tb_dataprocessing.optimized_func(
-            data, Wanted_data, cal_range, fit
-        )
-        # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
+
+        """ fitting start"""
+        cal_x, cal_y = optimizer.optimized_func(data, Wanted_data, cal_range, fit)
         data["cal_X"], data["cal_Y"] = cal_x, cal_y
 
         mean_same_x = data.groupby("x").mean()["cal_X"]
@@ -224,8 +258,6 @@ for file in file_list[2:3]:
         dpi=600,
         bbox_inches="tight",
     )
-    # plt.ylabel("K$_{x, y}$ X DOS ($\Delta/\Sigma$)")
-    # plt.grid()
 
     x_dummy = [np.arange(-max_point, max_point + step, step)] * number_interval
     y_dummy = [
@@ -234,14 +266,10 @@ for file in file_list[2:3]:
         for _ in range(number_interval)
     ]
 
-    # print(x_dummy)
-    # print(len(y_dummy))
     """
     2D mapping
     """
     plt.figure(figsize=(12, 4))
-
-    
     for i, fit in enumerate(cal_method):
         plt.subplot(1, len(cal_method), i + 1)
         plt.suptitle(r"$S_{x=y}$" + f" @ {target_freq} MHz", fontsize=16)
@@ -253,9 +281,7 @@ for file in file_list[2:3]:
             plt.title("5th-order polynomial")
         elif fit == "2D-3rd":
             plt.title("2D polynomial")
-        cal_x, cal_y = tb_dataprocessing.optimized_func(
-            data, Wanted_data, cal_range, fit
-        )
+        cal_x, cal_y = optimizer.optimized_func(data, Wanted_data, cal_range, fit)
         # cal_x_dia, cal_y_dia = optimized_func(data['xDia'], data['yDia'])
         data["cal_X"], data["cal_Y"] = cal_x, cal_y
         cal_offset = data[(data["x"] == 0) & (data["y"] == 0)][["cal_X", "cal_Y"]]
@@ -303,9 +329,7 @@ for file in file_list[2:3]:
         2D color plotting
         """
         # fig = plt.figure(10+i)
-        cal_x, cal_y = tb_dataprocessing.optimized_func(
-            data, Wanted_data, cal_range, fit
-        )
+        cal_x, cal_y = optimizer.optimized_func(data, Wanted_data, cal_range, fit)
         data["cal_X"], data["cal_Y"] = cal_x, cal_y
         cal_offset = data[(data["x"] == 0) & (data["y"] == 0)][["cal_X", "cal_Y"]]
 
@@ -344,7 +368,7 @@ for file in file_list[2:3]:
             ax2.set_title("2D 3rd-polynomial fitting", fontsize=14, x=0.5)
 
         cs = ax2.contourf(
-            x, y, z, 100, cmap="jet", vmin=vmin, vmax=vmax
+            x, y, z, 30, cmap="jet", vmin=vmin, vmax=vmax
         )  # , vmin=vmin, vmax=vmax
         divider = make_axes_locatable(ax2)
         cax = divider.append_axes("right", size="5%", pad=0.1)
@@ -368,51 +392,54 @@ for file in file_list[2:3]:
         dpi=600,
         bbox_inches="tight",
     )
-# %%
-error_dict = {}
-range_values = np.arange(step, cal_range + step, step)
-# errors_all = {1: [], 3:[], 5:[], '2D-3rd': []}
-errors_all = dict.fromkeys(cal_method, [])
-print(errors_all)
-# os.exit()
-errors_std, errors_se, errors_mean, errors_rms = {}, {}, {}, {}
+    # plt.show()
+    # %%
+    error_dict = {}
+    range_values = np.arange(step, cal_range + step, step)
+    # errors_all = {1: [], 3:[], 5:[], '2D-3rd': []}
+    errors_all = dict.fromkeys(cal_method, [])
+    print(errors_all)
+    # os.exit()
+    errors_std, errors_se, errors_mean, errors_rms = {}, {}, {}, {}
 
-"""
-범위에따른 에러 그래프
-"""
-for file in file_list:
-    # errors_all = dict.fromkeys(cal_method, [])
-    file_path = os.path.join(file_dir, file)
-    data = pd.read_csv(file_path, index_col=False)
+    """
+    범위에따른 에러 그래프
+    """
+    # for file in file_list:
+    #     # errors_all = dict.fromkeys(cal_method, [])
+    #     file_path = os.path.join(file_dir, file)
+    #     data = pd.read_csv(file_path, index_col=False)
 
-    data.drop([" Time", " Type", " 1Ch", " 2Ch", " 3Ch", " 4Ch"], axis=1, inplace=True)
-    data["x"], data["y"] = tb_dataprocessing.add_col_axis(
-        number_interval, step, max_point
-    )
-    error_dict, errors_all = tb_dataprocessing.ErrorWrtRange(
+    #     data.drop(
+    #         [" Time", " Type", " 1Ch", " 2Ch", " 3Ch", " 4Ch"], axis=1, inplace=True
+    #     )
+    #     data["x"], data["y"] = tb_dataprocessing.add_col_axis(
+    #         number_interval, step, max_point
+    #     )
+    error_dict, errors_all = optimizer.ErrorWrtRange(
         data, Wanted_data, cal_range, step, error_dict, errors_all, cal_method
     )
 
     print(error_dict)
-    sample_size = len(next(iter(errors_all.values())))
-    for fit, errors in errors_all.items():
-        # print(len(errors))
-        errors_std[fit] = np.std(errors, axis=0)
-        errors_se[fit] = errors_std[fit] / np.sqrt(sample_size)
-        errors_mean[fit] = np.mean(errors, axis=0)
-        errors_rms[fit] = np.sqrt(np.mean(np.array(errors) ** 2, axis=0))
+    # sample_size = len(next(iter(errors_all.values())))
+    # for fit, errors in errors_all.items():
+    #     # print(len(errors))
+    #     errors_std[fit] = np.std(errors, axis=0)
+    #     errors_se[fit] = errors_std[fit] / np.sqrt(sample_size)
+    #     errors_mean[fit] = np.mean(errors, axis=0)
+    #     errors_rms[fit] = np.sqrt(np.mean(np.array(errors) ** 2, axis=0))
 
-plt.figure()
-markers = ["^", "s", "D", ".", "<"]
-p_color = ["r", "b", "magenta", "g", "grey"]
-for i, (fit, error_list) in enumerate(error_dict.items()):
-    plt.plot(
-        range_values,
-        error_list,
-        label=f"n = {fit}",
-        marker=markers[2 - i],
-        c=p_color[i],
-    )
+    plt.figure(99 + fit_ver)
+    markers = ["^", "s", "D", ".", "<"]
+    p_color = ["r", "b", "magenta", "g", "grey"]
+    for i, (fit, error_list) in enumerate(error_dict.items()):
+        plt.plot(
+            range_values,
+            error_list,
+            label=f"n = {fit}",
+            marker=markers[2 - i],
+            c=p_color[i],
+        )
 
     # Find the maximum x where error is less than or equal to 0.10
     # max_x = np.max(np.array(range_values)[np.array(error_list) <= 0.10])
@@ -430,23 +457,24 @@ for i, (fit, error_list) in enumerate(error_dict.items()):
 
     # plt.axvline(3.0, color='gray', linestyle='--')
     # plt.axvline(4.0, color='gray', linestyle='--')
-plt.title(f"{sensitivity} case" + f" @ {target_freq} MHz")
-plt.axhline(100, color="gray", linestyle="--")
-plt.xlabel("wire movement range [mm]")
-plt.ylabel("Average error [\u03bcm]")
-# plt.ylabel(u"\u03bcs")
-plt.xticks(range_values)
-# y_ticks = np.arange(0, 201, 25)
-# plt.yticks(y_ticks)
-# plt.ylim(0, 0.3)
-plt.legend()
-plt.savefig(
-    f"{target_freq}MHz_" + sensi_str + "_Error_response.png",
-    format="png",
-    dpi=600,
-    bbox_inches="tight",
-)
-plt.show()
+    plt.title(f"{sensitivity} case" + f" @ {target_freq} MHz")
+    plt.axhline(100, color="gray", linestyle="--")
+    plt.xlabel("wire movement plane [mm²]")
+    plt.ylabel("Average error [\u03bcm]")
+    # plt.ylabel(u"\u03bcs")
+    labels = [f"{i}x{i}" for i in range(1, 11)]
+    plt.xticks(range(1, 11), labels)
+    # y_ticks = np.arange([range(0, 601, 100)])
+    plt.yticks(range(0, 601, 100))
+    # plt.ylim(0, 0.3)
+    plt.legend()
+    plt.savefig(
+        f"{target_freq}MHz_" + sensi_str + "_Error_response.png",
+        format="png",
+        dpi=600,
+        bbox_inches="tight",
+    )
+    plt.show()
 
 
 """

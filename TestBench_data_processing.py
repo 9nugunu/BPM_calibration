@@ -10,7 +10,8 @@ def PlotSettings():
     # plt.rcParams['font.weight'] = 'bold'
     plt.rcParams["font.size"] = 16
     plt.rcParams["image.cmap"] = "jet"
-    plt.rcParams["axes.titlesize"] = 16
+    plt.rcParams["axes.titlesize"] = 22
+    # plt.rcParams["axes.titleweight"] = 'bold'
     # plt.rcParams["axes.titleweight"] = "bold"
     plt.rcParams["font.family"] = "Times New Roman"
     plt.rcParams["lines.markersize"] ** 2
@@ -47,28 +48,28 @@ def BPM_curve_fit(x, target, fit_num):
     return popt
 
 
-def fit_1st(x, a):  # , c, d, e, f, e, f, g, h, i, j
-    return a * x
+def fit_1st(x, a, b):  # , c, d, e, f, e, f, g, h, i, j
+    return a * x + b
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
     # return a*x**7 + b*x**6 + c*x**5 + d*x**4 + e*x**3 + f*x**2 + g*x + h
     # return a*x**5 + b*x**4 + c*x**3 + d*x**2 + e*x + f
     # return a*x**3 + b*x**2 + c*x + d
 
 
-def fit_3rd(x, a, b, c):
-    return a * x**3 + b * x**2 + c * x
+def fit_3rd(x, a, b, c, d):
+    return a * x**3 + b * x**2 + c * x + d
     # return a*x**3 + c*x + d
 
 
-def fit_5th(x, a, b, c, d, e):
+def fit_5th(x, a, b, c, d, e, f):
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
-    return a * x**5 + b * x**4 + c * x**3 + d * x**2 + e * x
+    return a * x**5 + b * x**4 + c * x**3 + d * x**2 + e * x + f
 
 
-def fit_2D(xy, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o):
+def fit_2D(xy, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p):
     x, y = xy
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
-    return a * x**3 * y**3 + b * x**2 * y**3 + c * x * y**3 + d * y**3 + e * x**3 * y**2 + f * x**2 * y**2 + g * x * y**1 + h * y**1 + i * x**3 * y**1 + j * x**2 * y**1 + k * x * y**1 + l * y**1 + m * x**3 + n * x**2 + o * x
+    return a * x**3 * y**3 + b * x**2 * y**3 + c * x * y**3 + d * y**3 + e * x**3 * y**2 + f * x**2 * y**2 + g * x * y**1 + h * y**1 + i * x**3 * y**1 + j * x**2 * y**1 + k * x * y**1 + l * y**1 + m * x**3 + n * x**2 + o * x + p
 
 class Optimizer:
     """
@@ -197,14 +198,14 @@ class Optimizer:
         # errors_all = {1: [], 3: [], 5: [], '2D-3rd': []}
         for fit in cal_method_:
             fit_num = fit
-            print("=" * 300)
+            # print("=" * 300)
             # for i in range_values:
             cal_x_, cal_y_ = self.optimized_func(
                 data_, Wanted_data_, cal_range_, fit_num
             )
             # print("*"*300)
             data_["cal_X"], data_["cal_Y"] = cal_x_, cal_y_
-            print(data_)
+            # print(data_)
             cal_offset = data_[(data_["x"] == 0) & (data_["y"] == 0)][
                 ["cal_X", "cal_Y"]
             ]

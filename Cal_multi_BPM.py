@@ -44,10 +44,10 @@ for sensitivity, fit_ver in sensitivities.items():
 
     # filename = 'cal_paper__' + '1' + '_4port_01_0.25.csv'
     filename = "BPM01_352MHz_8dBm_2port_01_-10to10_100_20240109_201518.csv"
-    file_dir = (
-        "../-5_5_dataset/" + Port + f"BPM01_{target_freq}MHz_variAmp/"
-    )  # + filename # 'PAPER_ONLY_0825/' +
+    file_dir = ("../-5_5_dataset/" + Port + f"BPM01_{target_freq}MHz_variAmp/")  # + filename # 'PAPER_ONLY_0825/' +
     file_list = os.listdir(file_dir)
+    csv_files = [file for file in file_list if file.lower().endswith('.csv')]
+    # file_list = os.listdir(csv_files)
     print(type(file_list))
     # os.chdir('../' + file_dir)
     print(os.getcwd())
@@ -58,38 +58,45 @@ for sensitivity, fit_ver in sensitivities.items():
     """
     n개 데이터 평균 → 하나의 데이터 프레임
     """
-    for i in file_list:
+    data_sum = pd.DataFrame()
+    data_squared_sum = pd.DataFrame()
+
+    for i in csv_files:
         data_path = os.path.join(file_dir, i)
         raw_data = pd.read_csv(data_path, index_col=False)
-
         raw_data.drop(
             [" Time", " Type", " 1Ch", " 2Ch", " 3Ch", " 4Ch"], axis=1, inplace=True
         )
         raw_data["x"], raw_data["y"] = tb_dataprocessing.add_col_axis(
             number_interval, step, max_point
         )
-
+        selected_data = raw_data[[Wanted_data["X"], Wanted_data["Y"], "x", "y"]]
+        squared_data = selected_data ** 2
         # plt.plot[(raw_data["x"] == 0) & (raw_data["y"] == 0)][["cal_X", "cal_Y"]]
-        if data.empty:
-            data = raw_data[[Wanted_data["X"], Wanted_data["Y"], "x", "y"]].copy()
+        if data_sum.empty:
+            data_sum = selected_data
+            data_squared_sum = squared_data
+
         else:
-            data += raw_data[[Wanted_data["X"], Wanted_data["Y"], "x", "y"]]
+            data_sum += selected_data
+            data_squared_sum += squared_data
+            # data += raw_data[[Wanted_data["X"], Wanted_data["Y"], "x", "y"]]
 
-    data = data / len(file_list)
+    data = data_sum / len(file_list)
+    data_squared_mean = data_squared_sum / len(file_list)
+    data_std_dev = np.sqrt(data_squared_mean - data ** 2)
+    data_std_dev.to_csv("data_std_dev.csv", index=False)
     data_origin = data
-    # plt.show()
-    # for file in file_list[4:5]:
-    # print(file)
-    # file = "BPM01_352MHz_8dBm_2port_01_-10to10_100_20240109_132438.csv"
-    # file_path = os.path.join(file_dir, file)
-    # data = pd.read_csv(file_path, index_col=False)
-    # data.drop(
-    #     [" Time", " Type", " 1Ch", " 2Ch", " 3Ch", " 4Ch"], axis=1, inplace=True
-    # )
-    # data["x"], data["y"] = tb_dataprocessing.add_col_axis(
-    #     number_interval, step, max_point
-    # )
 
+    plt.figure(1)
+    plt.scatter(data['x'], data_std_dev[' X(A)'])
+    plt.scatter(data['y'], data_std_dev[' Y(A)'])
+
+    plt.figure(2)
+    plt.scatter(data_std_dev[' X(A)'], data_std_dev[' Y(A)'])
+    plt.grid()
+    plt.show()
+    os._exit(1)
     '''
     Measured DOS data plotting
     '''
@@ -440,6 +447,7 @@ for sensitivity, fit_ver in sensitivities.items():
     error_dict, errors_all = optimizer.ErrorWrtRange(data, Wanted_data, cal_range, step, error_dict, errors_all, cal_method)
 
     print(error_dict)
+    # print(np.std(error_dict))
     # sample_size = len(next(iter(errors_all.values())))
     # for fit, errors in errors_all.items():
     #     # print(len(errors))

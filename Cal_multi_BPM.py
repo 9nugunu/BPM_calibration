@@ -14,7 +14,7 @@ number_interval = 21
 
 step = 1
 max_point = 10
-cal_range = 8
+cal_range = 6
 
 
 Port = "2port/"
@@ -46,7 +46,7 @@ for sensitivity, fit_ver in sensitivities.items():
     filename = "BPM01_352MHz_8dBm_2port_01_-10to10_100_20240109_201518.csv"
     file_dir = ("../-5_5_dataset/" + Port + f"BPM01_{target_freq}MHz_variAmp/")  # + filename # 'PAPER_ONLY_0825/' +
     file_list = os.listdir(file_dir)
-    csv_files = [file for file in file_list if file.lower().endswith('.csv')]
+    file_list = [file for file in file_list if file.lower().endswith('.csv')]
     # file_list = os.listdir(csv_files)
     print(type(file_list))
     # os.chdir('../' + file_dir)
@@ -61,7 +61,7 @@ for sensitivity, fit_ver in sensitivities.items():
     data_sum = pd.DataFrame()
     data_squared_sum = pd.DataFrame()
 
-    for i in csv_files:
+    for i in file_list:
         data_path = os.path.join(file_dir, i)
         raw_data = pd.read_csv(data_path, index_col=False)
         raw_data.drop(
@@ -88,15 +88,15 @@ for sensitivity, fit_ver in sensitivities.items():
     data_std_dev.to_csv("data_std_dev.csv", index=False)
     data_origin = data
 
-    plt.figure(1)
-    plt.scatter(data['x'], data_std_dev[' X(A)'])
-    plt.scatter(data['y'], data_std_dev[' Y(A)'])
+    # plt.figure(1)
+    # plt.scatter(data['x'], data_std_dev[' X(A)'])
+    # plt.scatter(data['y'], data_std_dev[' Y(A)'])
 
-    plt.figure(2)
-    plt.scatter(data_std_dev[' X(A)'], data_std_dev[' Y(A)'])
-    plt.grid()
-    plt.show()
-    os._exit(1)
+    # plt.figure(2)
+    # plt.scatter(data_std_dev[' X(A)'], data_std_dev[' Y(A)'])
+    # plt.grid()
+    # plt.show()
+    # os._exit(1)
     '''
     Measured DOS data plotting
     '''
@@ -175,7 +175,8 @@ for sensitivity, fit_ver in sensitivities.items():
     ax3.scatter(data["x"], data[Wanted_data["X"]], label=r"$X_{all}$", s=8, c="black")
     # plt.scatter(mean_same_y.index, mean_same_y[Wanted_data['Y']], label='mean_same_y', s=10)
     '''
-    Zoomed curve'''
+    Zoomed curve
+    '''
     axins = zoomed_inset_axes(ax3, 3, loc="lower right", axes_kwargs={"fc": "lightgray"})
 
     axins.plot(data[data["x"] == data["y"]]["x"], data[data["x"] == data["y"]][Wanted_data["X"]], label=r"$DOS_{equal}$", c="b")
@@ -220,6 +221,7 @@ for sensitivity, fit_ver in sensitivities.items():
 
     """
     선형피팅 Sensitivity 출력
+    1D-2D 그림
     """
     # fig1.suptitle(f"{sensitivity} case" + f" @ {target_freq} MHz", fontsize=16, y=0.92)
     if fit_ver != 2:
@@ -277,9 +279,9 @@ for sensitivity, fit_ver in sensitivities.items():
         # plt.title("Linear calibration result")
         plt.xlabel("Wire position [mm]")
         plt.ylabel("Residuals [mm]")
-        plt.xlim([-(max_point+1), max_point+1])
+        plt.xlim([-(cal_range+1), cal_range+1])
         plt.ylim([-1, 1])
-        plt.xticks(range(-10, 11, 5))
+        plt.xticks(range(-cal_range, cal_range+1, 3))
         # plt.yticks(range(-10, 11, 5))
         # plt.gca().set_aspect("equal")
         plt.tight_layout()
@@ -421,8 +423,8 @@ for sensitivity, fit_ver in sensitivities.items():
         ax2.set_ylabel("Y [mm]")
         ax2.set_xlim([-cal_range, cal_range])
         ax2.set_ylim([-cal_range, cal_range])
-        ax2.set_xticks(range(-10, 11, 5))
-        ax2.set_yticks(range(-10, 11, 5))
+        ax2.set_xticks(range(-cal_range, cal_range+1, 5))
+        ax2.set_yticks(range(-cal_range, cal_range+1, 5))
         plt.tight_layout()
         # plt.show()
     plt.savefig(

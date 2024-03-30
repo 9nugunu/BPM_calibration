@@ -17,6 +17,7 @@ def calculate_rmse(df):
 dir_name = "C:/Users/9nugu/Documents/dynamic-range-240329/only/"
 file_dir = (dir_name)
 file_list = os.listdir(file_dir)
+file_list = [file for file in file_list if file.lower().endswith('.csv')]
 print(file_list)
 
 columns_to_convert = [' 1Ch', ' 2Ch', ' 3Ch', ' 4Ch']

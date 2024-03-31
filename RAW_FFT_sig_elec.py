@@ -38,16 +38,15 @@ for column in df.columns:
     fft_results[column] = np.fft.fft(df[column])
 
 for i, (channel, fft_result) in enumerate(fft_results.items()):
-    # ax2.plot(frequencies[positive_freqs], np.abs(fft_result[positive_freqs]), label=f"{i+1} Ch", c=graph_color[i])
-    ax2.scatter(frequencies[positive_freqs], np.abs(fft_result[positive_freqs]), label=f"{i+1} Ch", c=graph_color[i])
+    ax2.plot(frequencies[positive_freqs], np.abs(fft_result[positive_freqs]), label=f"{i+1} Ch", c=graph_color[i])
+    # ax2.scatter(frequencies[positive_freqs], np.abs(fft_result[positive_freqs]), label=f"{i+1} Ch", c=graph_color[i])
 
     if np.any((frequencies > target_freq - 1) & (frequencies < target_freq + 1)):
-        # Find the FFT result closest to the target frequency
         target_index = np.argmin(np.abs(frequencies - target_freq))
         target_magnitude = np.abs(fft_result[target_index])
 
-        # # Add a marker at the target frequency
-        # ax2.scatter(frequencies[target_index], target_magnitude, s=30, c=graph_color[i])
+        # Add a marker
+        ax2.scatter(frequencies[target_index], target_magnitude, s=30, c=graph_color[i])
 
 
 ax2.set_title('FFT of the digitized waveforms', fontweight='bold', fontsize=22)

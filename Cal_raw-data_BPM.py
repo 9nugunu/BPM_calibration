@@ -14,7 +14,8 @@ def calculate_rmse(df):
         rmse_values[column] = rmse
     return rmse_values
 
-dir_name = "C:/Users/9nugu/Documents/dynamic-range-240329/only/"
+dir_name = "D:/230331-switch-rawdata/"#"C:/Users/9nugu/Documents/240331-rawdata"#/test01"#dynamic-range-240329/"
+
 file_dir = (dir_name)
 file_list = os.listdir(file_dir)
 file_list = [file for file in file_list if file.lower().endswith('.csv')]
@@ -40,7 +41,9 @@ for i in file_list:
 all_rmse_df = pd.DataFrame(rmse_list)
 all_rmse_df[' X(A)'] = (all_rmse_df[' 2Ch'] - all_rmse_df[' 4Ch'])/(all_rmse_df[' 2Ch'] + all_rmse_df[' 4Ch'])
 all_rmse_df[' Y(A)'] = (all_rmse_df[' 1Ch'] - all_rmse_df[' 3Ch'])/(all_rmse_df[' 1Ch'] + all_rmse_df[' 3Ch'])
-print(all_rmse_df)
+# print(all_rmse_df)
 
-os.chdir(dir_name)
-all_rmse_df.to_csv('calculated_rmse.csv', index=False)
+os.chdir(dir_name + "results/")
+reversed_all_rmse_df = all_rmse_df.iloc[::-1].reset_index(drop=True)
+print(reversed_all_rmse_df)
+reversed_all_rmse_df.to_csv('RMSE_DOS-data.csv', index=False)

@@ -79,8 +79,26 @@ class Optimizer:
 
     def __init__(self):
         self.fit_ver = 0
+        self.fit_coeffs = {}
         # self.cal_x_ = 0
         # self.cal_y_ = 0
+
+    def store_fit_coeffs(self, fit_num, poptx, popty):
+        """
+        피팅 계수를 저장하는 메소드.
+        fit_ver와 fit_num에 따라 피팅 계수(poptx, popty)를 저장합니다.
+        """
+        # fit_ver와 fit_num 조합을 키로 사용
+        key = (self.fit_ver, fit_num)
+        self.fit_coeffs[key] = {'poptx': poptx, 'popty': popty}
+        print(f"Stored fit coefficients for fit_ver {self.fit_ver} and fit_num {fit_num}")
+
+    def get_fit_coeffs(self, fit_num):
+        """
+        저장된 피팅 계수를 조회하는 메소드.
+        """
+        key = (self.fit_ver, fit_num)
+        return self.fit_coeffs.get(key, None)
 
     def reset_ver(self):
         self.fit_ver = 0
@@ -178,6 +196,8 @@ class Optimizer:
             # print(dataset)
             cal_x_ = fit_2D(dataset, *poptx)
             cal_y_ = fit_2D(dataset, *popty)
+            
+        self.store_fit_coeffs(fit_num, poptx, popty)
 
         return cal_x_, cal_y_
 

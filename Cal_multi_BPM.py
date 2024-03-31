@@ -30,6 +30,8 @@ DOS_selection = {r"$S_{equal}$":r"$DOS_{equal}$", r"$S_{axis}$":r"$DOS_{axis}$",
 # sensitivities = {r"$S_{onaxis}$": 4}
 for sensitivity, fit_ver in sensitivities.items():
     current_DOS = DOS_selection[sensitivity]
+    coeffs_data = []
+
     print(f"Current DOS method: {current_DOS}")
     data = pd.DataFrame()
     optimizer.set_ver(fit_ver)
@@ -359,10 +361,6 @@ for sensitivity, fit_ver in sensitivities.items():
     # fig1.set_tight_layout(True)
     for i, fit in enumerate(cal_method):
         """
-        3D dimension plotting position
-        """
-
-        """
         2D color plotting
         """
         # fig = plt.figure(10+i)
@@ -426,13 +424,25 @@ for sensitivity, fit_ver in sensitivities.items():
         ax2.set_xticks(range(-cal_range, cal_range+1, 5))
         ax2.set_yticks(range(-cal_range, cal_range+1, 5))
         plt.tight_layout()
+
+        '''
+        '''
+        coeffs = optimizer.get_fit_coeffs(fit)
+        if coeffs:
+                coeffs_data.append([fit, *coeffs['poptx'], *coeffs['popty']])
+        coeffs_df = pd.DataFrame(coeffs_data, columns=['fit_num', 'poptx', 'popty'])
+        coeffs_df.to_csv(f'fitting_coefficients_ver_{fit_ver}.csv', index=False)
+        print(f'Saved fitting_coefficients_ver_{fit_ver}.csv')
         # plt.show()
+
+        data.to_csv(f'{fit_ver}_Calibrated_data.csv', index=False)
     plt.savefig(
         f"{current_DOS}_{target_freq}MHz_" + sensi_str + "_2D_colormap.png",
         format="png",
         dpi=500,
         bbox_inches="tight",
     )
+
     # plt.show()
     # %%
     error_dict = {}
@@ -443,6 +453,7 @@ for sensitivity, fit_ver in sensitivities.items():
     # os.exit()
     errors_std, errors_se, errors_mean, errors_rms = {}, {}, {}, {}
 
+    
     """
     범위에따른 에러 그래프
     """
@@ -506,9 +517,10 @@ for sensitivity, fit_ver in sensitivities.items():
     )
     print("save completed...")
 
-    plt.show()
-    # plt.close()
+    # plt.show()
+    plt.close()
 
+print(optimizer.get_fit_coeffs(3))
 
 """
 3D plotting

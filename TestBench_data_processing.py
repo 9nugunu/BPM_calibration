@@ -69,7 +69,10 @@ def fit_5th(x, a, b, c, d, e, f):
 def fit_2D(xy, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p):
     x, y = xy
     # return a*x**9 + b*x**8 + c*x**7 + d*x**6 + e*x**5 + f*x**4 + g*x**3 + h*x**2 + i*x + j
-    return a * x**3 * y**3 + b * x**2 * y**3 + c * x * y**3 + d * y**3 + e * x**3 * y**2 + f * x**2 * y**2 + g * x * y**1 + h * y**1 + i * x**3 * y**1 + j * x**2 * y**1 + k * x * y**1 + l * y**1 + m * x**3 + n * x**2 + o * x + p
+    return (a * x**3 * y**3 + b * x**2 * y**3 + c * x * y**3 + d * y**3 + 
+            e * x**3 * y**2 + f * x**2 * y**2 + g * x * y**2 + h * y**2 +
+            i * x**3 * y**1 + j * x**2 * y**1 + k * x * y**1 + l * y**1 +
+            m * x**3 + n * x**2 + o * x + p)
 
 class Optimizer:
     """

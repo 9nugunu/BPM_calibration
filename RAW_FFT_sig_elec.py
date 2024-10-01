@@ -7,12 +7,13 @@ import TestBench_data_processing as tb
 tb.PlotSettings()
 
 print(os.getcwd())
-file_dir = '\-5_5_dataset'
-os.chdir("../" + file_dir)
+file_dir = '../-5_5_dataset/'#"D:/240402-dynamic-range-direct/"
+# os.chdir("../" + file_dir)
+os.chdir(file_dir)
 
 samples = "2"
-# df = pd.read_csv(f'plot_digitized_onlyData_{samples}.csv', index_col='Time[ns]')
-df = pd.read_csv(f'No-signal-rms.csv', index_col='Time[ns]')
+df = pd.read_csv(f'plot_digitized_onlyData_{samples}.csv', index_col='Time[ns]')
+# df = pd.read_csv(f'FFT-test-3rd-data.csv', index_col='Time[ns]')
 print(df)
 
 graph_color = ('r', 'b', 'g', 'm')

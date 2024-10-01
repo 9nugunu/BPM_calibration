@@ -2,15 +2,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 import pandas as pd
+import os
 
 
 def PlotSettings():
-    plt.rcParams["axes.labelsize"] = 16
+    plt.rcParams["axes.labelsize"] = 22
     # plt.rcParams["axes.labelweight"] = "bold"
     # plt.rcParams['font.weight'] = 'bold'
-    plt.rcParams["font.size"] = 16
+    plt.rcParams["font.size"] = 22
     plt.rcParams["image.cmap"] = "jet"
-    plt.rcParams["axes.titlesize"] = 22
+    plt.rcParams["axes.titlesize"] = 24
     # plt.rcParams["axes.titleweight"] = 'bold'
     # plt.rcParams["axes.titleweight"] = "bold"
     plt.rcParams["font.family"] = "Times New Roman"
@@ -89,11 +90,16 @@ class Optimizer:
     def store_fit_coeffs(self, fit_num, poptx, popty):
         """
         피팅 계수를 저장하는 메소드.
-        fit_ver와 fit_num에 따라 피팅 계수(poptx, popty)를 저장합니다.
+        fit_ver와 fit_num에 따라 피팅 계수(poptx, popty)를 저장
         """
         # fit_ver와 fit_num 조합을 키로 사용
         key = (self.fit_ver, fit_num)
+        print("====="*100)
+        print(key)
         self.fit_coeffs[key] = {'poptx': poptx, 'popty': popty}
+        print(self.fit_coeffs)
+        print("====="*100)
+
         print(f"Stored fit coefficients for fit_ver {self.fit_ver} and fit_num {fit_num}")
 
     def get_fit_coeffs(self, fit_num):
@@ -196,6 +202,9 @@ class Optimizer:
             x_2dset = np.array(raw_data_[Wanted_data["X"]])
             y_2dset = np.array(raw_data_[Wanted_data["Y"]])
             dataset = np.array(x_2dset), np.array(y_2dset)
+            print(*poptx)
+            print(f"length: {len(poptx)}")
+            # os._exit(1)
             # print(dataset)
             cal_x_ = fit_2D(dataset, *poptx)
             cal_y_ = fit_2D(dataset, *popty)
@@ -262,7 +271,7 @@ class Optimizer:
                 error_list.append(error_z * 10**3)
                 # plt.scatter(filtered_cal_x, filtered_cal_y, label=f'n = {fit}')
                 # plt.show()
-                # if fit not in all_errors:
+                # if fit not in all_errors:x    
                 #     all_errors[fit] = []
                 # print(error_list)
             # print(f"fit: {fit}, 5th_error_list: {error_list[5]} **************************************")

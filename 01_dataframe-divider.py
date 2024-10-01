@@ -22,7 +22,8 @@ class DataFrameSlicer:
         self.case = case
         total_sets = len(self.dataframe) // self.slice_size
         if case == 'dynamic_range':
-            self.dataframe.insert(0, 'Input power [dBm]', np.tile(np.arange(-90, -19, 5), total_sets))
+            # np.arange(-90, 16, 5)
+            self.dataframe.insert(0, 'Input power [dBm]', np.tile(np.arange(-90, -24, 5), total_sets))
         elif case == 'dos':
             max_point = kwargs.get('max_point', 10)
             step = kwargs.get('step', 1)
@@ -44,10 +45,14 @@ class DataFrameSlicer:
     def slice_dataframe(self):
         # slice_size 행 씩 분할저장
         for i in range(0, len(self.dataframe), self.slice_size):
+            print(i)
+            print(i+self.slice_size)
             self.sliced_data[f'data_{str(i//self.slice_size).zfill(2)}'] = self.dataframe.iloc[i:i+self.slice_size]
+        print(self.sliced_data)
 
-    def save_slices_to_csv(self, save_path, input=''):
-        os.chdir(save_path)
+    def save_slices_to_csv(self, file_dir, input=''):
+        os.chdir(file_dir) #  + '../' Dynamic 일때 추가
+        print(os.getcwd())
         for key, df_slice in self.sliced_data.items():
             if input != '':
                 file_name = f"{self.case}_{input}_{key}.csv"
@@ -58,35 +63,39 @@ class DataFrameSlicer:
 
 
 choice_data = {0:'dynamic_range', 1:'DOS'}
-selected = choice_data[1]
+selected = choice_data[0]
+samples = 5000
 
+# file_dir = "D:/240402-dynamic-range-direct/results/"#/test01"#dynamic-range-240329/"
+# file_dir = f"C:\\Users\\9nugu\\Documents\\03-04-combined\\results\\RMSE-table-{samples}\\"#/test01"#dynamic-range-240329/"
+file_dir = "D:/Testbench_rawdata/240425-dynamic-amp-7dbm/results/RMSE-table-5000/"#/test01"#dynamic-range-240329/"
+
+# amp: -90 to -20
+# none: -90 to 15
 if selected == 'dynamic_range':
     '''
     파일 경로 및 불러오기
     '''
-    dir_name = "D:/dynamic-range-240329/results/"#/test01"#dynamic-range-240329/"
-    file_dir = (dir_name)
-    file_name = "calculated_rmse-dy.csv"
+    file_name = "RMSE_DOS-data.csv"
     data_path = os.path.join(file_dir, file_name)
     target_data = pd.read_csv(data_path)
-    n = 15
+    n = 14 #22
 
     '''
     클래스 인스턴스 생성
     '''
-    save_path = dir_name
     slicer = DataFrameSlicer(target_data, slice_size=n)
     slicer.add_new_column(case='dynamic_range')
     # slicer.add_new_column(case='dos', max_point=10, step=1, number_interval=15)
     slicer.slice_dataframe()
-    slicer.save_slices_to_csv(save_path)
+    slicer.save_slices_to_csv(file_dir)
 
 elif selected == 'DOS':
     '''
     파일 경로 및 불러오기
     '''
-    dir_name = "D:/240331-0dbm-rawdata/results/"#/test01"#dynamic-range-240329/"
-    file_dir = (dir_name)
+    # file_dir = "D:/240401-02-rawdata/results/RMSE-table/"#/test01"#dynamic-range-240329/"
+    os.chdir(file_dir)
     file_name = "RMSE_DOS-data.csv"
     data_path = os.path.join(file_dir, file_name)
     target_data = pd.read_csv(data_path)
@@ -95,8 +104,8 @@ elif selected == 'DOS':
     '''
     클래스 인스턴스 생성
     '''
-    save_path = dir_name
     slicer = DataFrameSlicer(target_data, slice_size=n)
     slicer.add_new_column(case='dos', max_point=10, step=1, number_interval=21)
-    slicer.slice_dataframe()
-    slicer.save_slices_to_csv(save_path, "0dBm")
+    slicer.slice_dataframe() 
+    save_dir = file_dir + '../' + f'{samples} samples'
+    slicer.save_slices_to_csv(save_dir, "0dBm")
